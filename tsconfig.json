@@ -1,6 +1,30 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
-  }
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@/app/*": ["app/*"],
+      "@/features/*": ["features/*"],
+      "@/entities/*": ["entities/*"],
+      "@/shared/*": ["shared/*"],
+      "@/components/*": ["components/*"],
+      "@/hooks/*": ["hooks/*"],
+      "@/services/*": ["services/*"],
+      "@/store/*": ["store/*"],
+      "@/constants/*": ["constants/*"],
+      "@/types/*": ["types/*"],
+      "@/theme/*": ["theme/*"],
+      "@/assets/*": ["assets/*"],
+      "@/mocks/*": ["mocks/*"],
+      "@/design/*": ["design/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", "nativewind-env.d.ts"]
 }

@@ -2,10 +2,39 @@
 
 # dependencies
 node_modules/
-
-# Expo
 .expo/
+.expo-shared/
 dist/
+web-build/
+coverage/
+
+# Native
+*.jks
+*.p8
+*.p12
+*.key
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+pnpm-debug.*
+
+# Local env
+.env
+.env.local
+.env.*.local
+
+# Build caches
+.turbo/
+.cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Expo generated
+expo-env.d.ts
 web-build/
 expo-env.d.ts
 
