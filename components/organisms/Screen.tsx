@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { cn } from '@/shared/lib/cn';
 
+const topSafeAreaEdges = ['top'] as const;
+
 type ScreenProps = PropsWithChildren<{
   className?: string;
   contentClassName?: string;
@@ -20,7 +22,7 @@ export const Screen = ({
     return (
       <SafeAreaView
         className={cn('flex-1 bg-surface dark:bg-surfaceDark', className)}
-        edges={['top']}
+        edges={topSafeAreaEdges}
       >
         <View className={cn('flex-1', contentClassName)}>{children}</View>
       </SafeAreaView>
@@ -30,7 +32,7 @@ export const Screen = ({
   return (
     <SafeAreaView
       className={cn('flex-1 bg-surface dark:bg-surfaceDark', className)}
-      edges={['top']}
+      edges={topSafeAreaEdges}
     >
       <ScrollView
         bounces={false}

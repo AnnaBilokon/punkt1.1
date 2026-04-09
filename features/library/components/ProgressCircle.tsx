@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 
-import { ProgressRing, Text } from '@/components';
+import { ProgressRing } from '@/components';
 
 type ProgressCircleProps = {
   progress: number;
@@ -8,12 +8,13 @@ type ProgressCircleProps = {
 
 export const ProgressCircle = ({ progress }: ProgressCircleProps) => (
   <View className="items-center justify-center">
-    <ProgressRing label="Progress" progress={progress} />
-    <Text
-      className="mt-3 text-textMuted dark:text-textMutedDark"
-      variant="caption"
-    >
-      45%
-    </Text>
+    <ProgressRing
+      progress={progress}
+      progressColor="#CC76D8"
+      size={100}
+      strokeWidth={15}
+      textClassName="text-[#313C5D]"
+      trackColor="#797DEA"
+    />
   </View>
 );

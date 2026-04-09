@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Image, View } from 'react-native';
 
 import { Text } from '@/components/atoms/Text';
@@ -24,13 +24,14 @@ export const Avatar = memo(
       sizeClasses[size],
       className,
     );
+    const imageSource = useMemo(() => (uri ? { uri } : undefined), [uri]);
 
-    if (uri) {
+    if (imageSource) {
       return (
         <Image
           accessibilityIgnoresInvertColors
           className={resolvedClassName}
-          source={{ uri }}
+          source={imageSource}
         />
       );
     }

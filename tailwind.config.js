@@ -7,6 +7,7 @@ module.exports = {
     './shared/**/*.{ts,tsx}',
   ],
   darkMode: 'media',
+  presets: [require('nativewind/preset')],
   theme: {
     extend: {
       colors: {
