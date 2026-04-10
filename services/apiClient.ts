@@ -8,7 +8,9 @@ const buildUrl = (
   path: string,
   params?: RequestConfig['params'],
 ) => {
-  const url = new URL(path, `${baseUrl.replace(/\/$/, '')}/`);
+  const normalizedBase = baseUrl.replace(/\/$/, '');
+  const normalizedPath = path.replace(/^\//, '');
+  const url = new URL(`${normalizedBase}/${normalizedPath}`);
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {

@@ -16,12 +16,23 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 type ProgressRingProps = {
   label?: string;
   progress: number;
+  progressColor?: string;
   size?: number;
   strokeWidth?: number;
+  textClassName?: string;
+  trackColor?: string;
 };
 
 export const ProgressRing = memo(
-  ({ label, progress, size = 92, strokeWidth = 10 }: ProgressRingProps) => {
+  ({
+    label,
+    progress,
+    progressColor = '#6E56CF',
+    size = 92,
+    strokeWidth = 10,
+    textClassName = 'text-brand dark:text-brand-soft',
+    trackColor = 'rgba(17, 24, 39, 0.08)',
+  }: ProgressRingProps) => {
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
     const normalizedProgress = Math.max(0, Math.min(100, progress));
@@ -47,7 +58,7 @@ export const ProgressRing = memo(
             cy={size / 2}
             fill="transparent"
             r={radius}
-            stroke="rgba(17, 24, 39, 0.08)"
+            stroke={trackColor}
             strokeWidth={strokeWidth}
           />
           <AnimatedCircle
@@ -57,7 +68,7 @@ export const ProgressRing = memo(
             fill="transparent"
             r={radius}
             rotation="-90"
-            stroke="#6E56CF"
+            stroke={progressColor}
             strokeDasharray={circumference}
             strokeLinecap="round"
             strokeWidth={strokeWidth}
@@ -66,7 +77,10 @@ export const ProgressRing = memo(
           />
         </Svg>
         <View className="absolute items-center gap-0.5">
-          <Text className="text-brand dark:text-brand-soft" variant="title">
+          <Text
+            className={`text-[28px] font-semibold ${textClassName}`}
+            variant="title"
+          >
             {normalizedProgress}%
           </Text>
           {label ? (

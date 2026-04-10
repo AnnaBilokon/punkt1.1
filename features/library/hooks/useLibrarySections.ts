@@ -1,15 +1,19 @@
 import { useMemo } from 'react';
 
-import { useBookStore } from '@/store/bookStore';
+import { useUserBooks } from '@/features/library/hooks/useUserBooks';
+import { useAuthStore } from '@/store/authStore';
 
 export const useLibrarySections = () => {
-  const books = useBookStore((state) => state.books);
+  const userId = useAuthStore((s) => s.user?.id ?? null);
+  const { data: books = [], isFetching } = useUserBooks(userId);
 
   return useMemo(
     () => ({
-      keepReading: books.filter((book) => book.status !== 'want-to-read'),
+      finished: books.filter((book) => book.status === 'completed'),
+      isFetching,
+      keepReading: books.filter((book) => book.status === 'reading'),
       wantToRead: books.filter((book) => book.status === 'want-to-read'),
     }),
-    [books],
+    [books, isFetching],
   );
 };

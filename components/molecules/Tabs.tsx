@@ -8,6 +8,9 @@ import {
 } from '@/shared/lib/accessibility';
 import { cn } from '@/shared/lib/cn';
 
+const selectedTabState = { selected: true } as const;
+const unselectedTabState = { selected: false } as const;
+
 export type TabOption<T extends string> = {
   label: string;
   value: T;
@@ -31,6 +34,9 @@ function TabsComponent<T extends string>({
     >
       {options.map((option) => {
         const isActive = option.value === value;
+        const accessibilityState = isActive
+          ? selectedTabState
+          : unselectedTabState;
 
         return (
           <Pressable
@@ -48,7 +54,7 @@ function TabsComponent<T extends string>({
               'tab',
               `Switch to ${option.label}`,
             )}
-            accessibilityState={{ selected: isActive }}
+            accessibilityState={accessibilityState}
           >
             <Text
               className={isActive ? 'text-brand dark:text-brand-soft' : ''}

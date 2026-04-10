@@ -7,13 +7,14 @@ module.exports = {
     './shared/**/*.{ts,tsx}',
   ],
   darkMode: 'media',
+  presets: [require('nativewind/preset')],
   theme: {
     extend: {
       colors: {
         brand: {
-          DEFAULT: '#6E56CF',
-          soft: '#8C7AE6',
-          deep: '#4B379A',
+          DEFAULT: '#7851A9',
+          soft: '#9B6FC8',
+          deep: '#5C3D85',
         },
         accent: {
           DEFAULT: '#3B82F6',

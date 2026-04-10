@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { memo } from 'react';
 import { View } from 'react-native';
 
@@ -16,15 +17,22 @@ export const ReadingChallengeCard = memo(
     const progress = getChallengeProgress(challenge);
 
     return (
-      <Card className="overflow-hidden bg-[#F8F5FF] dark:bg-[#171328]">
-        <View className="absolute -right-8 -top-6 h-28 w-28 rounded-full bg-brand/10" />
-        <View className="flex-row items-center justify-between gap-5">
-          <View className="max-w-[65%] gap-3">
-            <Text variant="caption">{challenge.year} Reading Challenge</Text>
-            <Text variant="title">
+      <Card className="rounded-[17px] border-[#d9d9d9] bg-[#f9f9f9] px-6 py-4">
+        <View className="mb-3 flex-row items-start justify-between gap-4">
+          <Text className="text-[16px] font-semibold text-black" variant="body">
+            {challenge.year} Reading Challenge
+          </Text>
+          <Ionicons color="#9b9b9b" name="create-outline" size={18} />
+        </View>
+        <View className="flex-row items-center justify-between gap-4">
+          <View className="max-w-[62%] gap-2">
+            <Text
+              className="text-[26px] font-semibold text-[#797DEA]"
+              variant="body"
+            >
               {challenge.completed}/{challenge.goal} books
             </Text>
-            <Text className="text-textMuted dark:text-textMutedDark">
+            <Text className="text-[18px] text-black" variant="body">
               {challenge.label}
             </Text>
           </View>
