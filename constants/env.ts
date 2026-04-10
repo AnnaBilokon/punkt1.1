@@ -1,5 +1,6 @@
 export const env = {
   amazonBooksBaseUrl: process.env.EXPO_PUBLIC_AMAZON_BOOKS_BASE_URL ?? '',
+  googleBooksApiKey: process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY ?? '',
   googleBooksBaseUrl:
     process.env.EXPO_PUBLIC_GOOGLE_BOOKS_BASE_URL ??
     'https://www.googleapis.com/books/v1',

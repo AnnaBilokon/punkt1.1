@@ -1,21 +1,128 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Image, Pressable, ScrollView, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/atoms/Text';
-import { mockBooks } from '@/mocks/books';
-import type { Book } from '@/types';
+import { AppDialog, type DialogButton } from '@/components/molecules/AppDialog';
+import { AddBookModal } from '@/features/discover/components/AddBookModal';
+import { useBookSearch } from '@/features/discover/hooks/useBookSearch';
+import { useNytBestsellers } from '@/features/discover/hooks/useNytBestsellers';
+import { useAuthStore } from '@/store/authStore';
+import { useBookStore } from '@/store/bookStore';
+import type { Book, BookStatus } from '@/types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const bookHref = (id: string) => `/book/${id}` as any;
 
 type DiscoverTab = 'trending' | 'genres' | 'people';
 
-const ALL_GENRES = Array.from(
-  new Set(mockBooks.flatMap((b) => b.genres)),
-).sort();
+const ALL_GENRES = [
+  'Fiction',
+  'Non-Fiction',
+  'Mystery',
+  'Fantasy',
+  'Science Fiction',
+  'Romance',
+  'Thriller',
+  'Historical Fiction',
+  'Self Help',
+  'Biography',
+];
+
+function TrendingBookCard({
+  book,
+  onAdd,
+}: {
+  book: Book;
+  onAdd: (book: Book) => void;
+}) {
+  const router = useRouter();
+  const fullStars = Math.round(book.rating);
+  return (
+    <Pressable
+      accessibilityLabel={`${book.title} by ${book.author}`}
+      accessibilityRole="button"
+      className="flex-1 overflow-hidden rounded-[10px] border border-[#e8e8e8] bg-white"
+      style={{
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        elevation: 2,
+      }}
+      onPress={() => router.push(bookHref(book.id))}
+    >
+      {/* Cover — portrait, fills card width */}
+      {book.coverImage ? (
+        <Image
+          resizeMode="cover"
+          source={{ uri: book.coverImage }}
+          style={{ width: '100%', aspectRatio: 0.75 }}
+        />
+      ) : (
+        <View
+          className="w-full items-center justify-center bg-[#f1edf8]"
+          style={{ aspectRatio: 0.75 }}
+        >
+          <Ionicons color="#7D5BA6" name="book-outline" size={36} />
+        </View>
+      )}
+
+      {/* Info */}
+      <View className="gap-0.5 p-2 pb-2.5">
+        <Text
+          className="text-[12px] font-semibold leading-tight text-black"
+          numberOfLines={2}
+        >
+          {book.title}
+        </Text>
+        <Text className="text-[10px] text-[#6d7a88]" numberOfLines={1}>
+          by {book.author}
+        </Text>
+
+        {/* Stars + rating + genre */}
+        <View className="flex-row flex-wrap items-center gap-x-0.5 pt-0.5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Ionicons
+              key={i}
+              color={i < fullStars ? '#F5C518' : '#D9D9D9'}
+              name="star"
+              size={10}
+            />
+          ))}
+          {book.rating > 0 && (
+            <Text className="text-[10px] text-[#6d7a88]">
+              {book.rating.toFixed(1)}
+            </Text>
+          )}
+          <Text className="text-[10px] text-[#6d7a88]">{book.genres[0]}</Text>
+        </View>
+
+        {/* Add button */}
+        <Pressable
+          accessibilityLabel={`Add ${book.title} to library`}
+          accessibilityRole="button"
+          className="mt-1 items-center rounded-[6px] bg-[#7851A9] py-1.5"
+          onPress={(e) => {
+            e.stopPropagation();
+            onAdd(book);
+          }}
+        >
+          <Text className="text-[11px] font-semibold text-white">+ Add</Text>
+        </Pressable>
+      </View>
+    </Pressable>
+  );
+}
 
 function BookGenreCard({ book }: { book: Book }) {
   const router = useRouter();
@@ -39,7 +146,15 @@ function BookGenreCard({ book }: { book: Book }) {
   );
 }
 
-function BookListRow({ book }: { book: Book }) {
+function BookListRow({
+  book,
+  onAdd,
+  onEdit,
+}: {
+  book: Book;
+  onAdd?: (book: Book) => void;
+  onEdit?: (book: Book) => void;
+}) {
   const router = useRouter();
   return (
     <Pressable
@@ -48,10 +163,16 @@ function BookListRow({ book }: { book: Book }) {
       className="flex-row items-center gap-3 py-2"
       onPress={() => router.push(bookHref(book.id))}
     >
-      <Image
-        className="h-[60px] w-[44px] rounded-[8px]"
-        source={{ uri: book.coverImage }}
-      />
+      {book.coverImage ? (
+        <Image
+          className="h-[60px] w-[44px] rounded-[8px]"
+          source={{ uri: book.coverImage }}
+        />
+      ) : (
+        <View className="h-[60px] w-[44px] items-center justify-center rounded-[8px] bg-[#f1edf8]">
+          <Ionicons color="#7D5BA6" name="book-outline" size={20} />
+        </View>
+      )}
       <View className="flex-1 gap-0.5">
         <Text
           className="text-[13px] font-semibold text-black"
@@ -60,15 +181,45 @@ function BookListRow({ book }: { book: Book }) {
           {book.title}
         </Text>
         <Text className="text-[12px] text-[#6d7a88]">{book.author}</Text>
-        <View className="flex-row items-center gap-1">
-          <Ionicons color="#F5C518" name="star" size={11} />
-          <Text className="text-[11px] text-[#6d7a88]">
-            {book.rating.toFixed(1)}
-          </Text>
-        </View>
+        {book.rating > 0 && (
+          <View className="flex-row items-center gap-1">
+            <Ionicons color="#F5C518" name="star" size={11} />
+            <Text className="text-[11px] text-[#6d7a88]">
+              {book.rating.toFixed(1)}
+            </Text>
+          </View>
+        )}
       </View>
-      <View className="rounded-[5px] bg-[#f1edf8] px-2 py-0.5">
-        <Text className="text-[11px] text-[#7D5BA6]">{book.genres[0]}</Text>
+      <View className="flex-row items-center gap-2">
+        <View className="rounded-[5px] bg-[#f1edf8] px-2 py-0.5">
+          <Text className="text-[11px] text-[#7D5BA6]">{book.genres[0]}</Text>
+        </View>
+        {onEdit && book.id.startsWith('custom-') && (
+          <Pressable
+            accessibilityLabel={`Edit ${book.title}`}
+            className="rounded-full bg-[#f1edf8] p-1"
+            hitSlop={8}
+            onPress={(e) => {
+              e.stopPropagation();
+              onEdit(book);
+            }}
+          >
+            <Ionicons color="#7D5BA6" name="pencil" size={14} />
+          </Pressable>
+        )}
+        {onAdd && (
+          <Pressable
+            accessibilityLabel={`Add ${book.title} to library`}
+            className="rounded-full bg-[#7851A9] p-1"
+            hitSlop={8}
+            onPress={(e) => {
+              e.stopPropagation();
+              onAdd(book);
+            }}
+          >
+            <Ionicons color="white" name="add" size={14} />
+          </Pressable>
+        )}
       </View>
     </Pressable>
   );
@@ -78,26 +229,56 @@ export const DiscoverScreen = () => {
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState<DiscoverTab>('genres');
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [editingBook, setEditingBook] = useState<Book | undefined>(undefined);
+  const [dialog, setDialog] = useState<{
+    buttons: DialogButton[];
+    message?: string;
+    title: string;
+  } | null>(null);
 
-  const filteredBooks = useMemo(() => {
-    const q = query.toLowerCase();
-    return mockBooks.filter(
-      (b) =>
-        b.title.toLowerCase().includes(q) ||
-        b.author.toLowerCase().includes(q) ||
-        b.genres.some((g) => g.toLowerCase().includes(q)),
-    );
-  }, [query]);
+  const user = useAuthStore((s) => s.user);
+  const addBook = useBookStore((s) => s.addBook);
+
+  const { data: searchResults = [], isFetching: isSearching } =
+    useBookSearch(query);
+  const { data: trendingBooks = [], isFetching: isTrendingLoading } =
+    useNytBestsellers();
+
+  const isSearchMode = query.trim().length >= 2;
 
   const genreBooks = useMemo(() => {
-    if (!selectedGenre) return filteredBooks;
-    return filteredBooks.filter((b) => b.genres.includes(selectedGenre));
-  }, [filteredBooks, selectedGenre]);
+    if (!selectedGenre) return searchResults;
+    return searchResults.filter((b) =>
+      b.genres.some((g) =>
+        g.toLowerCase().includes(selectedGenre.toLowerCase()),
+      ),
+    );
+  }, [searchResults, selectedGenre]);
 
-  const trendingBooks = useMemo(
-    () => [...filteredBooks].sort((a, b) => b.rating - a.rating),
-    [filteredBooks],
-  );
+  const handleAddBook = (book: Book) => {
+    if (!user) return;
+    setDialog({
+      title: `Add "${book.title}"`,
+      message: 'Choose a shelf:',
+      buttons: [
+        {
+          label: 'Want to Read',
+          onPress: () =>
+            void addBook(user.id, book, 'want-to-read' as BookStatus),
+        },
+        {
+          label: 'Currently Reading',
+          onPress: () => void addBook(user.id, book, 'reading' as BookStatus),
+        },
+        {
+          label: 'Finished',
+          onPress: () => void addBook(user.id, book, 'completed' as BookStatus),
+        },
+        { label: 'Cancel', type: 'cancel', onPress: () => {} },
+      ],
+    });
+  };
 
   const tabs: { id: DiscoverTab; label: string }[] = [
     { id: 'trending', label: 'Trending' },
@@ -115,160 +296,244 @@ export const DiscoverScreen = () => {
       >
         {/* Search bar */}
         <View className="px-5 pb-3 pt-4">
-          <View
-            className="flex-row items-center gap-2 rounded-[10px] border border-[#d9d9d9] bg-[#f9f9f9] px-4"
-            style={{ height: 45 }}
-          >
-            <Ionicons color="#6d7a88" name="search-outline" size={20} />
-            <TextInput
-              className="flex-1 text-[14px] text-black"
-              onChangeText={setQuery}
-              placeholder="Search books, authors or genres"
-              placeholderTextColor="rgba(109,122,136,0.6)"
-              value={query}
-            />
-            {query.length > 0 && (
-              <Pressable
-                accessibilityLabel="Clear search"
-                onPress={() => setQuery('')}
-              >
-                <Ionicons color="#6d7a88" name="close-circle" size={18} />
-              </Pressable>
-            )}
+          <View className="flex-row items-center gap-2">
+            <View
+              className="flex-1 flex-row items-center gap-2 rounded-[10px] border border-[#d9d9d9] bg-[#f9f9f9] px-4"
+              style={{ height: 45 }}
+            >
+              <Ionicons color="#6d7a88" name="search-outline" size={20} />
+              <TextInput
+                className="flex-1 text-[14px] text-black"
+                onChangeText={setQuery}
+                placeholder="Search books, authors or genres"
+                placeholderTextColor="rgba(109,122,136,0.6)"
+                value={query}
+              />
+              {isSearching && (
+                <ActivityIndicator color="#7851A9" size="small" />
+              )}
+              {query.length > 0 && !isSearching && (
+                <Pressable
+                  accessibilityLabel="Clear search"
+                  onPress={() => setQuery('')}
+                >
+                  <Ionicons color="#6d7a88" name="close-circle" size={18} />
+                </Pressable>
+              )}
+            </View>
+            {/* Add book button */}
+            <Pressable
+              accessibilityLabel="Add a book to database"
+              accessibilityRole="button"
+              className="items-center justify-center rounded-[10px] bg-[#7851A9]"
+              hitSlop={4}
+              onPress={() => setAddModalVisible(true)}
+              style={{ width: 45, height: 45 }}
+            >
+              <Ionicons color="white" name="add" size={24} />
+            </Pressable>
           </View>
         </View>
 
-        {/* Tabs */}
-        <View
-          className="mx-5 mb-4 flex-row rounded-[8px] border border-[#d9d9d9] bg-[#f9f9f9]"
-          style={{ height: 41 }}
-        >
-          {tabs.map((tab, index) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <Pressable
-                key={tab.id}
-                accessibilityLabel={tab.label}
-                accessibilityRole="tab"
-                className="flex-1 items-center justify-center"
-                onPress={() => {
-                  setActiveTab(tab.id);
-                  setSelectedGenre(null);
-                }}
-                style={isActive && {
-                    backgroundColor: '#a0c4a7',
-                    borderTopLeftRadius: index === 0 ? 7 : 0,
-                    borderBottomLeftRadius: index === 0 ? 7 : 0,
-                    borderTopRightRadius: index === 2 ? 7 : 0,
-                    borderBottomRightRadius: index === 2 ? 7 : 0,
-                  }}
-              >
-                <Text
-                  className={`text-[14px] ${isActive ? 'text-white' : 'text-black'}`}
-                >
-                  {tab.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {/* Trending tab */}
-        {activeTab === 'trending' && (
+        {/* Search results */}
+        {isSearchMode && (
           <View className="gap-1 px-5">
-            {trendingBooks.length === 0 ? (
+            {searchResults.length === 0 && !isSearching && (
               <Text className="py-6 text-center text-[14px] text-[#6d7a88]">
                 No results found.
               </Text>
-            ) : (
-              trendingBooks.map((book) => (
-                <BookListRow key={book.id} book={book} />
-              ))
             )}
+            {searchResults.map((book) => (
+              <BookListRow
+                key={book.id}
+                book={book}
+                onAdd={handleAddBook}
+                onEdit={setEditingBook}
+              />
+            ))}
           </View>
         )}
 
-        {/* Genres tab */}
-        {activeTab === 'genres' && (
-          <View className="gap-4 px-5">
-            {/* Genre filter chips */}
-            <ScrollView
-              contentContainerStyle={{ gap: 8 }}
-              horizontal
-              showsHorizontalScrollIndicator={false}
+        {/* Tabs — only shown when not searching */}
+        {!isSearchMode && (
+          <>
+            <View
+              className="mx-5 mb-4 flex-row rounded-[8px] border border-[#d9d9d9] bg-[#f9f9f9]"
+              style={{ height: 41 }}
             >
-              <Pressable
-                accessibilityLabel="All genres"
-                className="rounded-full px-3 py-1"
-                onPress={() => setSelectedGenre(null)}
-                style={{
-                  backgroundColor: !selectedGenre ? '#7D5BA6' : '#f1edf8',
-                }}
-              >
-                <Text
-                  className={`text-[12px] ${!selectedGenre ? 'text-white' : 'text-[#7D5BA6]'}`}
-                >
-                  All
-                </Text>
-              </Pressable>
-              {ALL_GENRES.map((genre) => (
-                <Pressable
-                  key={genre}
-                  accessibilityLabel={genre}
-                  className="rounded-full px-3 py-1"
-                  onPress={() =>
-                    setSelectedGenre(selectedGenre === genre ? null : genre)
-                  }
-                  style={{
-                    backgroundColor:
-                      selectedGenre === genre ? '#7D5BA6' : '#f1edf8',
-                  }}
-                >
-                  <Text
-                    className={`text-[12px] ${selectedGenre === genre ? 'text-white' : 'text-[#7D5BA6]'}`}
+              {tabs.map((tab, index) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <Pressable
+                    key={tab.id}
+                    accessibilityLabel={tab.label}
+                    accessibilityRole="tab"
+                    className="flex-1 items-center justify-center"
+                    onPress={() => {
+                      setActiveTab(tab.id);
+                      setSelectedGenre(null);
+                    }}
+                    style={isActive && {
+                        backgroundColor: '#a0c4a7',
+                        borderTopLeftRadius: index === 0 ? 7 : 0,
+                        borderBottomLeftRadius: index === 0 ? 7 : 0,
+                        borderTopRightRadius: index === 2 ? 7 : 0,
+                        borderBottomRightRadius: index === 2 ? 7 : 0,
+                      }}
                   >
-                    {genre}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
+                    <View className="flex-row items-center gap-1">
+                      <Text
+                        className={`text-[14px] ${isActive ? 'text-white' : 'text-black'}`}
+                      >
+                        {tab.label}
+                      </Text>
+                      {isActive && (
+                        <Ionicons color="white" name="chevron-down" size={14} />
+                      )}
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
 
-            {/* Book cards horizontal scroll */}
-            {genreBooks.length === 0 ? (
-              <Text className="py-6 text-center text-[14px] text-[#6d7a88]">
-                No books in this genre.
-              </Text>
-            ) : (
-              <ScrollView
-                contentContainerStyle={{ gap: 12 }}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-              >
-                {genreBooks.map((book) => (
-                  <BookGenreCard key={book.id} book={book} />
-                ))}
-              </ScrollView>
+            {/* Trending tab */}
+            {activeTab === 'trending' && (
+              <View className="px-4">
+                {isTrendingLoading && (
+                  <ActivityIndicator className="py-6" color="#7851A9" />
+                )}
+                {!isTrendingLoading && trendingBooks.length === 0 && (
+                  <Text className="py-6 text-center text-[14px] text-[#6d7a88]">
+                    Trending books unavailable. Add an NYT API key to enable
+                    this.
+                  </Text>
+                )}
+                {trendingBooks
+                  .reduce<Book[][]>((rows, book, i) => {
+                    if (i % 2 === 0) rows.push([book]);
+                    else rows[rows.length - 1]!.push(book);
+                    return rows;
+                  }, [])
+                  .map((pair, rowIdx) => (
+                    <View key={rowIdx} className="mb-3 flex-row gap-3">
+                      {pair.map((book) => (
+                        <TrendingBookCard
+                          key={book.id}
+                          book={book}
+                          onAdd={handleAddBook}
+                        />
+                      ))}
+                      {pair.length === 1 && <View className="flex-1" />}
+                    </View>
+                  ))}
+              </View>
             )}
 
-            {/* Full list below */}
-            <View className="mt-2 gap-1">
-              {genreBooks.map((book) => (
-                <BookListRow key={book.id} book={book} />
-              ))}
-            </View>
-          </View>
-        )}
+            {/* Genres tab */}
+            {activeTab === 'genres' && (
+              <View className="gap-4 px-5">
+                <ScrollView
+                  contentContainerStyle={{ gap: 8 }}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                >
+                  <Pressable
+                    accessibilityLabel="All genres"
+                    className="rounded-full px-3 py-1"
+                    onPress={() => setSelectedGenre(null)}
+                    style={{
+                      backgroundColor: !selectedGenre ? '#7851A9' : '#f1edf8',
+                    }}
+                  >
+                    <Text
+                      className={`text-[12px] ${!selectedGenre ? 'text-white' : 'text-[#7D5BA6]'}`}
+                    >
+                      All
+                    </Text>
+                  </Pressable>
+                  {ALL_GENRES.map((genre) => (
+                    <Pressable
+                      key={genre}
+                      accessibilityLabel={genre}
+                      className="rounded-full px-3 py-1"
+                      onPress={() =>
+                        setSelectedGenre(selectedGenre === genre ? null : genre)
+                      }
+                      style={{
+                        backgroundColor:
+                          selectedGenre === genre ? '#7851A9' : '#f1edf8',
+                      }}
+                    >
+                      <Text
+                        className={`text-[12px] ${selectedGenre === genre ? 'text-white' : 'text-[#7D5BA6]'}`}
+                      >
+                        {genre}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
 
-        {/* People tab */}
-        {activeTab === 'people' && (
-          <View className="items-center px-5 py-10">
-            <Ionicons color="#d9d9d9" name="people-outline" size={48} />
-            <Text className="mt-3 text-[14px] text-[#6d7a88]">
-              People discovery coming soon.
-            </Text>
-          </View>
+                {genreBooks.length === 0 ? (
+                  <Text className="py-6 text-center text-[14px] text-[#6d7a88]">
+                    Search for books to explore by genre.
+                  </Text>
+                ) : (
+                  <>
+                    <ScrollView
+                      contentContainerStyle={{ gap: 12 }}
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                    >
+                      {genreBooks.map((book) => (
+                        <BookGenreCard key={book.id} book={book} />
+                      ))}
+                    </ScrollView>
+                    <View className="mt-2 gap-1">
+                      {genreBooks.map((book) => (
+                        <BookListRow
+                          key={book.id}
+                          book={book}
+                          onAdd={handleAddBook}
+                          onEdit={setEditingBook}
+                        />
+                      ))}
+                    </View>
+                  </>
+                )}
+              </View>
+            )}
+
+            {/* People tab */}
+            {activeTab === 'people' && (
+              <View className="items-center px-5 py-10">
+                <Ionicons color="#d9d9d9" name="people-outline" size={48} />
+                <Text className="mt-3 text-[14px] text-[#6d7a88]">
+                  People discovery coming soon.
+                </Text>
+              </View>
+            )}
+          </>
         )}
       </ScrollView>
+      {user && (
+        <AddBookModal
+          editBook={editingBook}
+          userId={user.id}
+          visible={addModalVisible || !!editingBook}
+          onBookSaved={(book, status) => addBook(user.id, book, status)}
+          onClose={() => {
+            setAddModalVisible(false);
+            setEditingBook(undefined);
+          }}
+        />
+      )}
+      <AppDialog
+        buttons={dialog?.buttons ?? []}
+        message={dialog?.message}
+        onClose={() => setDialog(null)}
+        title={dialog?.title ?? ''}
+        visible={!!dialog}
+      />
     </SafeAreaView>
   );
 };

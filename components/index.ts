@@ -1,6 +1,7 @@
 export * from './atoms/Avatar';
 export * from './atoms/IconButton';
 export * from './atoms/Text';
+export * from './molecules/AppDialog';
 export * from './molecules/Button';
 export * from './molecules/SectionHeader';
 export * from './molecules/Tabs';

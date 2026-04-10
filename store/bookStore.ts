@@ -1,29 +1,43 @@
 import { create } from 'zustand';
 
-import { mockBooks, mockBookshelves } from '@/mocks/books';
-import type { Book, Bookshelf } from '@/types';
+import { userBooksQueryKey } from '@/features/library/hooks/useUserBooks';
+import { bookRepository } from '@/services/books/bookRepository';
+import { queryClient } from '@/shared/lib/queryClient';
+import type { Book, BookStatus, ReadingDataUpdate } from '@/types';
 
 type BookState = {
-  addBook: (book: Book) => void;
-  books: Book[];
-  bookshelves: Bookshelf[];
-  getBooksByStatus: (status: Book['status']) => Book[];
+  addBook: (userId: string, book: Book, status: BookStatus) => Promise<void>;
+  removeBook: (userId: string, bookApiId: string) => Promise<void>;
+  saveReadingData: (
+    userId: string,
+    bookApiId: string,
+    updates: ReadingDataUpdate,
+  ) => Promise<void>;
+  updateBookStatus: (
+    userId: string,
+    bookApiId: string,
+    status: BookStatus,
+  ) => Promise<void>;
 };
 
-export const useBookStore = create<BookState>()((set, get) => ({
-  addBook: (book) => {
-    const exists = get().books.some((b) => b.id === book.id);
-    if (!exists) {
-      set((state) => ({
-        books: [
-          ...state.books,
-          { ...book, status: 'want-to-read', progress: 0 },
-        ],
-      }));
-    }
+export const useBookStore = create<BookState>()(() => ({
+  addBook: async (userId, book, status) => {
+    await bookRepository.addBook(userId, book, status);
+    void queryClient.invalidateQueries({ queryKey: userBooksQueryKey(userId) });
   },
-  books: mockBooks,
-  bookshelves: mockBookshelves,
-  getBooksByStatus: (status) =>
-    get().books.filter((book) => book.status === status),
+
+  removeBook: async (userId, bookApiId) => {
+    await bookRepository.removeBook(userId, bookApiId);
+    void queryClient.invalidateQueries({ queryKey: userBooksQueryKey(userId) });
+  },
+
+  saveReadingData: async (userId, bookApiId, updates) => {
+    await bookRepository.saveReadingData(userId, bookApiId, updates);
+    void queryClient.invalidateQueries({ queryKey: userBooksQueryKey(userId) });
+  },
+
+  updateBookStatus: async (userId, bookApiId, status) => {
+    await bookRepository.updateBook(userId, bookApiId, { status });
+    void queryClient.invalidateQueries({ queryKey: userBooksQueryKey(userId) });
+  },
 }));

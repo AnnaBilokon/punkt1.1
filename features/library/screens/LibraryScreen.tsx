@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { memo } from 'react';
-import { View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 
 import { Container, Screen, Text } from '@/components';
 import { useLibrarySections } from '@/features/library/hooks/useLibrarySections';
@@ -15,7 +15,12 @@ export const LibraryScreen = memo(() => {
   const challenge = useChallengeStore((state) => state.challenge);
   const libraryTab = useUiStore((state) => state.libraryTab);
   const setLibraryTab = useUiStore((state) => state.setLibraryTab);
-  const { keepReading, wantToRead } = useLibrarySections();
+  const {
+    keepReading = [],
+    wantToRead = [],
+    finished = [],
+    isFetching,
+  } = useLibrarySections();
 
   return (
     <Screen className="bg-[#fdfdfd]" contentClassName="gap-6 pt-2" scrollable>
@@ -34,19 +39,32 @@ export const LibraryScreen = memo(() => {
 
         <LibraryTabs onChange={setLibraryTab} value={libraryTab} />
 
-        <LibraryShelfCard
-          books={keepReading}
-          countLabel="4 books"
-          showCaption={false}
-          title="My library"
-        />
+        {isFetching ? (
+          <ActivityIndicator color="#7851A9" />
+        ) : (
+          <>
+            <LibraryShelfCard
+              books={keepReading}
+              countLabel={`${keepReading.length} book${keepReading.length !== 1 ? 's' : ''}`}
+              showCaption={false}
+              title="Currently Reading"
+            />
 
-        <LibraryShelfCard
-          books={wantToRead}
-          countLabel="2 books"
-          showCaption
-          title="Want to read"
-        />
+            <LibraryShelfCard
+              books={wantToRead}
+              countLabel={`${wantToRead.length} book${wantToRead.length !== 1 ? 's' : ''}`}
+              showCaption
+              title="Want to Read"
+            />
+
+            <LibraryShelfCard
+              books={finished}
+              countLabel={`${finished.length} book${finished.length !== 1 ? 's' : ''}`}
+              showCaption
+              title="Finished"
+            />
+          </>
+        )}
       </Container>
     </Screen>
   );

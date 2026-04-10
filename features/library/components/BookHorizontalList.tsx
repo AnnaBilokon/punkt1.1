@@ -45,7 +45,7 @@ export const BookHorizontalList = memo(
       [itemWidth],
     );
 
-    if (books.length === 0) {
+    if (!books?.length) {
       return (
         <View className="rounded-[24px] border border-dashed border-border p-6 dark:border-borderDark">
           <Text>{emptyLabel}</Text>
