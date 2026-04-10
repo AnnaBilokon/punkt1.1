@@ -7,7 +7,6 @@ const TAB_SCREEN_OPTIONS = {
   sceneStyle: {
     backgroundColor: '#FDFDFD',
   },
-  tabBarActiveBackgroundColor: '#CFCEF9',
   tabBarActiveTintColor: '#313C5D',
   tabBarInactiveTintColor: '#212121',
   tabBarShowLabel: false,
@@ -35,9 +34,28 @@ const tabBarIcon =
   ({ color, focused }: { color: string; size: number; focused: boolean }) => {
     if (focused) {
       return (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            borderRadius: 999,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            backgroundColor: '#7851A96B',
+          }}
+        >
           <Ionicons color={color} name={name} size={20} />
-          <Text style={{ fontSize: 11, fontWeight: '400', color: '#313C5D' }}>{title}</Text>
+          <Text
+            style={{
+              fontSize: 11,
+              fontWeight: '400',
+              color: color,
+              borderRadius: 999,
+            }}
+          >
+            {title}
+          </Text>
         </View>
       );
     }

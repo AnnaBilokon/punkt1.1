@@ -9,4 +9,6 @@ export const env = {
     'https://api.nytimes.com/svc/books/v3',
   openLibraryBaseUrl:
     process.env.EXPO_PUBLIC_OPEN_LIBRARY_BASE_URL ?? 'https://openlibrary.org',
+  supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
+  supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
 } as const;

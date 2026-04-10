@@ -50,7 +50,11 @@ export const Button = memo(
         style={animatedStyle}
       >
         <Text
-          className={tone === 'primary' ? 'text-white' : ''}
+          className={
+            tone === 'primary'
+              ? 'text-white'
+              : 'text-brand dark:text-brand-soft'
+          }
           variant="label"
         >
           {label}
