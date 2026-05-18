@@ -37,7 +37,13 @@ const mapOLDoc = (doc: OLDoc): Book => ({
 
 export const searchOpenLibrary = async (query: string): Promise<Book[]> => {
   const data = await openLibraryClient.get<OLResponse>('/search.json', {
-    params: { limit: 20, q: query },
+    params: {
+      fields:
+        'key,title,author_name,cover_i,subject,first_publish_year,number_of_pages_median,ratings_average',
+      limit: 20,
+      q: query,
+      sort: 'new',
+    },
   });
   return (data.docs ?? []).map(mapOLDoc);
 };
