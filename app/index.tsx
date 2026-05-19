@@ -5,6 +5,6 @@ import { useAuthStore } from '@/store/authStore';
 export default function Index() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return (
-    <Redirect href={isAuthenticated ? '/(tabs)/library' : '/(auth)/welcome'} />
+    <Redirect href={isAuthenticated ? '/(tabs)/home' : '/(auth)/welcome'} />
   );
 }
