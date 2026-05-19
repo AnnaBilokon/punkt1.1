@@ -55,6 +55,34 @@ export const searchCommunityBooks = async (query: string): Promise<Book[]> => {
   return (data as CommunityBookRow[]).map(rowToBook);
 };
 
+export const findCommunityBookByTitleAuthor = async (
+  title: string,
+  author: string,
+  excludeRawId?: string,
+): Promise<Book | null> => {
+  const normalizedTitle = title.trim();
+  const normalizedAuthor = author.trim();
+
+  if (!normalizedTitle || !normalizedAuthor) return null;
+
+  let query = supabase
+    .from('community_books')
+    .select('*')
+    .ilike('title', normalizedTitle)
+    .ilike('author', normalizedAuthor)
+    .limit(1);
+
+  if (excludeRawId) {
+    query = query.neq('id', excludeRawId);
+  }
+
+  const { data, error } = await query.maybeSingle();
+
+  if (error || !data) return null;
+
+  return rowToBook(data as CommunityBookRow);
+};
+
 export const updateCommunityBook = async (
   rawId: string,
   input: CommunityBookInput,

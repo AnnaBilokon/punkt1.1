@@ -1,9 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker, {
+  type DateTimePickerEvent,
+} from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -104,29 +108,28 @@ function InteractiveStars({
 
 function DateField({
   label,
-  onChange,
+  onPress,
   value,
 }: {
   label: string;
-  onChange: (v: string) => void;
+  onPress: () => void;
   value: string;
 }) {
   return (
     <View className="flex-1 gap-1.5">
       <Text className="text-[12px] font-semibold text-[#15151e]">{label}</Text>
-      <View
+      <Pressable
         className="flex-row items-center rounded-[8px] border border-[#d9d9d9] bg-[#f9f9f9] px-3"
+        onPress={onPress}
         style={{ height: 44 }}
       >
-        <TextInput
-          className="flex-1 text-[13px] text-black"
-          onChangeText={onChange}
-          placeholder="DD/MM/YYYY"
-          placeholderTextColor="#aaa"
-          value={value}
-        />
+        <Text
+          className={`flex-1 text-[13px] ${value ? 'text-black' : 'text-[#aaa]'}`}
+        >
+          {value || 'DD/MM/YYYY'}
+        </Text>
         <Ionicons color="#aaa" name="calendar-outline" size={16} />
-      </View>
+      </Pressable>
     </View>
   );
 }
@@ -163,6 +166,32 @@ function MyReadingTab({
   const [review, setReview] = useState(savedBook?.review ?? '');
   const [note, setNote] = useState(savedBook?.note ?? '');
   const [saving, setSaving] = useState(false);
+  const [activePicker, setActivePicker] = useState<
+    'started' | 'finished' | null
+  >(null);
+
+  const getPickerDate = () => {
+    const iso =
+      activePicker === 'started'
+        ? displayToIso(startedAt)
+        : displayToIso(finishedAt);
+    return iso ? new Date(iso) : new Date();
+  };
+
+  const handlePickerChange = (event: DateTimePickerEvent, selected?: Date) => {
+    if (Platform.OS === 'android') {
+      setActivePicker(null);
+      if (event.type === 'dismissed') return;
+    }
+    if (selected) {
+      const y = selected.getFullYear();
+      const m = String(selected.getMonth() + 1).padStart(2, '0');
+      const d = String(selected.getDate()).padStart(2, '0');
+      const display = `${d}/${m}/${y}`;
+      if (activePicker === 'started') setStartedAt(display);
+      else setFinishedAt(display);
+    }
+  };
 
   if (!savedBook) {
     return (
@@ -262,15 +291,57 @@ function MyReadingTab({
         <View className="flex-row gap-3">
           <DateField
             label="Started on"
-            onChange={setStartedAt}
+            onPress={() => setActivePicker('started')}
             value={startedAt}
           />
           <DateField
             label="Finished on"
-            onChange={setFinishedAt}
+            onPress={() => setActivePicker('finished')}
             value={finishedAt}
           />
         </View>
+
+        {/* Date Picker */}
+        {activePicker !== null &&
+          (Platform.OS === 'ios' ? (
+            <Modal animationType="fade" transparent>
+              <Pressable
+                className="flex-1 items-center justify-end bg-black/40"
+                onPress={() => setActivePicker(null)}
+              >
+                <Pressable
+                  className="w-full rounded-t-[18px] bg-white pb-8 pt-2"
+                  onPress={() => {}}
+                >
+                  <View className="flex-row justify-end px-4 pb-1">
+                    <Pressable
+                      hitSlop={12}
+                      onPress={() => setActivePicker(null)}
+                    >
+                      <Text className="text-[15px] font-semibold text-[#7D5BA6]">
+                        Done
+                      </Text>
+                    </Pressable>
+                  </View>
+                  <DateTimePicker
+                    display="spinner"
+                    maximumDate={new Date()}
+                    mode="date"
+                    onChange={handlePickerChange}
+                    value={getPickerDate()}
+                  />
+                </Pressable>
+              </Pressable>
+            </Modal>
+          ) : (
+            <DateTimePicker
+              display="default"
+              maximumDate={new Date()}
+              mode="date"
+              onChange={handlePickerChange}
+              value={getPickerDate()}
+            />
+          ))}
 
         {/* Review */}
         <View className="gap-1.5">

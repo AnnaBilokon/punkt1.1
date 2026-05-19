@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { memo } from 'react';
-import { Text as RNText } from 'react-native';
+import { type StyleProp, Text as RNText, type TextStyle } from 'react-native';
 
 import { cn } from '@/shared/lib/cn';
 
@@ -10,6 +10,7 @@ type AppTextProps = {
   children: ReactNode;
   className?: string;
   numberOfLines?: number;
+  style?: StyleProp<TextStyle>;
   variant?: TextVariant;
 };
 
@@ -23,10 +24,17 @@ const variantClasses: Record<TextVariant, string> = {
 };
 
 export const Text = memo(
-  ({ children, className, numberOfLines, variant = 'body' }: AppTextProps) => (
+  ({
+    children,
+    className,
+    numberOfLines,
+    style,
+    variant = 'body',
+  }: AppTextProps) => (
     <RNText
       className={cn(variantClasses[variant], className)}
       numberOfLines={numberOfLines}
+      style={style}
     >
       {children}
     </RNText>

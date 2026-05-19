@@ -1,100 +1,122 @@
 import { Ionicons } from '@expo/vector-icons';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useRouter } from 'expo-router';
 import { Tabs } from 'expo-router';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const TAB_SCREEN_OPTIONS = {
-  headerShown: false,
-  sceneStyle: {
-    backgroundColor: '#FDFDFD',
-  },
-  tabBarActiveTintColor: '#313C5D',
-  tabBarInactiveTintColor: '#212121',
-  tabBarShowLabel: false,
-  tabBarStyle: {
-    backgroundColor: '#F9F9F9',
-    borderColor: '#D9D9D9',
-    borderRadius: 999,
-    borderTopWidth: 1,
-    bottom: 18,
-    height: 49,
-    left: 20,
-    paddingBottom: 5,
-    paddingTop: 5,
-    position: 'absolute' as const,
-    right: 20,
-  },
-  tabBarItemStyle: {
-    borderRadius: 999,
-    marginHorizontal: 4,
-  },
-} as const;
+type TabConfig = {
+  activeIcon: keyof typeof Ionicons.glyphMap;
+  inactiveIcon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  name: string;
+};
 
-const tabBarIcon =
-  (name: keyof typeof Ionicons.glyphMap, title: string) =>
-  ({ color, focused }: { color: string; size: number; focused: boolean }) => {
-    if (focused) {
-      return (
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            borderRadius: 999,
-            paddingHorizontal: 8,
-            paddingVertical: 4,
-            backgroundColor: '#7851A96B',
-          }}
-        >
-          <Ionicons color={color} name={name} size={20} />
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: '400',
-              color: color,
-              borderRadius: 999,
-            }}
+const TABS: TabConfig[] = [
+  {
+    activeIcon: 'home',
+    inactiveIcon: 'home-outline',
+    label: 'Home',
+    name: 'home',
+  },
+  {
+    activeIcon: 'search',
+    inactiveIcon: 'search-outline',
+    label: 'Discover',
+    name: 'discover',
+  },
+  {
+    activeIcon: 'book',
+    inactiveIcon: 'book-outline',
+    label: 'Library',
+    name: 'library',
+  },
+  {
+    activeIcon: 'person-circle',
+    inactiveIcon: 'person-circle-outline',
+    label: 'Profile',
+    name: 'profile',
+  },
+];
+
+function CustomTabBar({ state }: BottomTabBarProps) {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        bottom: 18 + insets.bottom,
+        left: 16,
+        right: 16,
+        height: 64,
+        backgroundColor: '#F9F9F9',
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: '#D9D9D9',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+      }}
+    >
+      {TABS.map((tab) => {
+        const routeIndex = state.routes.findIndex((r) => r.name === tab.name);
+        const focused = state.index === routeIndex;
+
+        return (
+          <Pressable
+            key={tab.name}
+            onPress={() => router.push(`/(tabs)/${tab.name}` as any)}
+            style={{ flex: 1, alignItems: 'center' }}
           >
-            {title}
-          </Text>
-        </View>
-      );
-    }
-    return <Ionicons color={color} name={name} size={25} />;
-  };
-
-const LIBRARY_TAB_OPTIONS = {
-  tabBarIcon: tabBarIcon('book-outline', 'Library'),
-  title: 'Library',
-};
-
-const DISCOVER_TAB_OPTIONS = {
-  tabBarIcon: tabBarIcon('search-outline', 'Discover'),
-  title: 'Discover',
-};
-
-const FRIENDS_TAB_OPTIONS = {
-  tabBarIcon: tabBarIcon('person-outline', 'Friends'),
-  title: 'Friends',
-};
-
-const MESSAGES_TAB_OPTIONS = {
-  tabBarIcon: tabBarIcon('mail-outline', 'Messages'),
-  title: 'Messages',
-};
-
-const PROFILE_TAB_OPTIONS = {
-  tabBarIcon: tabBarIcon('person-circle-outline', 'Profile'),
-  title: 'Profile',
-};
+            <View
+              style={{
+                alignItems: 'center',
+                borderRadius: 16,
+                gap: 3,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                backgroundColor: focused ? '#7851A926' : 'transparent',
+              }}
+            >
+              <Ionicons
+                color={focused ? '#7851A9' : '#9b9b9b'}
+                name={focused ? tab.activeIcon : tab.inactiveIcon}
+                size={22}
+              />
+              <Text
+                style={{
+                  color: focused ? '#7851A9' : '#9b9b9b',
+                  fontSize: 11,
+                  fontWeight: focused ? '600' : '400',
+                }}
+              >
+                {tab.label}
+              </Text>
+            </View>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
 
 export default function TabsLayout() {
   return (
-    <Tabs screenOptions={TAB_SCREEN_OPTIONS}>
-      <Tabs.Screen name="library" options={LIBRARY_TAB_OPTIONS} />
-      <Tabs.Screen name="discover" options={DISCOVER_TAB_OPTIONS} />
-      <Tabs.Screen name="friends" options={FRIENDS_TAB_OPTIONS} />
-      <Tabs.Screen name="messages" options={MESSAGES_TAB_OPTIONS} />
-      <Tabs.Screen name="profile" options={PROFILE_TAB_OPTIONS} />
+    <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{
+        headerShown: false,
+        sceneStyle: { backgroundColor: '#FDFDFD' },
+      }}
+    >
+      <Tabs.Screen name="home" />
+      <Tabs.Screen name="discover" />
+      <Tabs.Screen name="library" />
+      <Tabs.Screen name="profile" />
+      <Tabs.Screen name="friends" options={{ href: null }} />
+      <Tabs.Screen name="messages" options={{ href: null }} />
     </Tabs>
   );
 }

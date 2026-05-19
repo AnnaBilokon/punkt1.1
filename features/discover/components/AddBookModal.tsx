@@ -15,6 +15,7 @@ import {
 
 import { Text } from '@/components/atoms/Text';
 import {
+  findCommunityBookByTitleAuthor,
   submitCommunityBook,
   updateCommunityBook,
 } from '@/services/books/communityBooks';
@@ -38,6 +39,8 @@ type FormState = {
   publishedYear: string;
   title: string;
 };
+
+const toRawCommunityId = (bookId: string) => bookId.replace(/^custom-/, '');
 
 const INITIAL_FORM: FormState = {
   author: '',
@@ -144,8 +147,11 @@ export const AddBookModal = ({
   };
 
   const handleSave = async () => {
-    if (!form.title.trim() || !form.author.trim()) {
-      Alert.alert('Required', 'Title and Author are required.');
+    if (!form.title.trim() || !form.author.trim() || !form.coverImage.trim()) {
+      Alert.alert(
+        'Required',
+        'Title, Author, and Cover are required before saving.',
+      );
       return;
     }
 
@@ -169,10 +175,21 @@ export const AddBookModal = ({
     setSaving(true);
     try {
       let book: Book;
-      if (isEditing && editBook) {
-        // Raw UUID is everything after "custom-"
-        const rawId = editBook.id.replace(/^custom-/, '');
-        book = await updateCommunityBook(rawId, input);
+      const editingRawId =
+        isEditing && editBook ? toRawCommunityId(editBook.id) : undefined;
+      const existingBook = await findCommunityBookByTitleAuthor(
+        input.title,
+        input.author,
+        editingRawId,
+      );
+
+      if (existingBook) {
+        book = await updateCommunityBook(
+          toRawCommunityId(existingBook.id),
+          input,
+        );
+      } else if (isEditing && editBook) {
+        book = await updateCommunityBook(editingRawId!, input);
       } else {
         book = await submitCommunityBook(userId, input);
       }
@@ -184,7 +201,11 @@ export const AddBookModal = ({
       // Ask if user wants to add the book to a shelf
       if (onBookSaved) {
         Alert.alert(
-          isEditing ? 'Book updated!' : 'Book saved!',
+          existingBook
+            ? 'Book already existed'
+            : isEditing
+              ? 'Book updated!'
+              : 'Book saved!',
           'Do you want to add it to a shelf?',
           [
             { style: 'cancel', text: 'Not now' },
@@ -263,7 +284,7 @@ export const AddBookModal = ({
               {/* Cover Image */}
               <View className="gap-1">
                 <Text className="text-[13px] font-medium text-[#444]">
-                  Cover Image
+                  Cover Image *
                 </Text>
                 <Pressable
                   accessibilityLabel="Pick cover image from library"

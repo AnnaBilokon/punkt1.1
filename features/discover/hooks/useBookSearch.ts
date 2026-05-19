@@ -12,15 +12,21 @@ const MIN_QUERY_LENGTH = 2;
 const normalize = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9\u0400-\u04ff]/g, '');
 
-/** Deduplicate by title+author similarity — keeps the first occurrence */
+/** Deduplicate by title+author similarity — keeps the first occurrence, but
+ *  borrows a non-zero rating from a later duplicate if the kept copy has none */
 const deduplicateBooks = (books: Book[]): Book[] => {
-  const seen = new Set<string>();
-  return books.filter((book) => {
+  const seen = new Map<string, Book>();
+  for (const book of books) {
     const key = `${normalize(book.title)}-${normalize(book.author).slice(0, 8)}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+    const existing = seen.get(key);
+    if (!existing) {
+      seen.set(key, book);
+    } else if (existing.rating === 0 && book.rating > 0) {
+      // Keep the first entry's data (better cover/description) but use the rating
+      seen.set(key, { ...existing, rating: book.rating });
+    }
+  }
+  return Array.from(seen.values());
 };
 
 const searchAllSources = async (query: string): Promise<Book[]> => {

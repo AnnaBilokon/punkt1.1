@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -15,6 +15,7 @@ import { Text } from '@/components/atoms/Text';
 import { AppDialog, type DialogButton } from '@/components/molecules/AppDialog';
 import { AddBookModal } from '@/features/discover/components/AddBookModal';
 import { useBookSearch } from '@/features/discover/hooks/useBookSearch';
+import { useGenreBooks } from '@/features/discover/hooks/useGenreBooks';
 import { useNytBestsellers } from '@/features/discover/hooks/useNytBestsellers';
 import { useAuthStore } from '@/store/authStore';
 import { useBookStore } from '@/store/bookStore';
@@ -25,17 +26,81 @@ const bookHref = (id: string) => `/book/${id}` as any;
 
 type DiscoverTab = 'trending' | 'genres' | 'people';
 
-const ALL_GENRES = [
-  'Fiction',
-  'Non-Fiction',
-  'Mystery',
-  'Fantasy',
-  'Science Fiction',
-  'Romance',
-  'Thriller',
-  'Historical Fiction',
-  'Self Help',
-  'Biography',
+type GenreCard = { color: string; icon: string; label: string; query: string };
+
+const GENRE_CARDS: GenreCard[] = [
+  {
+    color: '#7D5BA6',
+    icon: 'book-outline',
+    label: 'Fiction',
+    query: 'Fiction',
+  },
+  {
+    color: '#3D7EAA',
+    icon: 'newspaper-outline',
+    label: 'Non-Fiction',
+    query: 'Non-Fiction',
+  },
+  {
+    color: '#2E7D5E',
+    icon: 'search-outline',
+    label: 'Mystery',
+    query: 'Mystery',
+  },
+  {
+    color: '#6436A3',
+    icon: 'star-outline',
+    label: 'Fantasy',
+    query: 'Fantasy',
+  },
+  {
+    color: '#0277BD',
+    icon: 'planet-outline',
+    label: 'Sci-Fi',
+    query: 'Science Fiction',
+  },
+  {
+    color: '#C2185B',
+    icon: 'heart-outline',
+    label: 'Romance',
+    query: 'Romance',
+  },
+  {
+    color: '#C62828',
+    icon: 'warning-outline',
+    label: 'Thriller',
+    query: 'Thriller',
+  },
+  {
+    color: '#6D4C41',
+    icon: 'time-outline',
+    label: 'Historical',
+    query: 'Historical Fiction',
+  },
+  {
+    color: '#2E7B32',
+    icon: 'bulb-outline',
+    label: 'Self Help',
+    query: 'Self Help',
+  },
+  {
+    color: '#E65100',
+    icon: 'person-outline',
+    label: 'Biography',
+    query: 'Biography',
+  },
+  {
+    color: '#00838F',
+    icon: 'flask-outline',
+    label: 'Science',
+    query: 'Popular Science',
+  },
+  {
+    color: '#AD1457',
+    icon: 'color-palette-outline',
+    label: 'Art & Design',
+    query: 'Art Design',
+  },
 ];
 
 function TrendingBookCard({
@@ -119,28 +184,6 @@ function TrendingBookCard({
         >
           <Text className="text-[11px] font-semibold text-white">+ Add</Text>
         </Pressable>
-      </View>
-    </Pressable>
-  );
-}
-
-function BookGenreCard({ book }: { book: Book }) {
-  const router = useRouter();
-  return (
-    <Pressable
-      accessibilityLabel={`${book.title} by ${book.author}`}
-      accessibilityRole="button"
-      className="mr-4"
-      onPress={() => router.push(bookHref(book.id))}
-    >
-      <View className="relative h-[87px] w-[114px] overflow-hidden rounded-[10px] border border-[#d9d9d9]">
-        <Image
-          className="absolute inset-0 h-full w-full"
-          source={{ uri: book.coverImage }}
-        />
-        <View className="absolute bottom-1.5 left-1.5 rounded-[5px] bg-white px-1.5 py-0.5">
-          <Text className="text-[11px] text-black">{book.genres[0]}</Text>
-        </View>
       </View>
     </Pressable>
   );
@@ -244,17 +287,10 @@ export const DiscoverScreen = () => {
     useBookSearch(query);
   const { data: trendingBooks = [], isFetching: isTrendingLoading } =
     useNytBestsellers();
+  const { data: genreBooks = [], isFetching: isGenreLoading } =
+    useGenreBooks(selectedGenre);
 
   const isSearchMode = query.trim().length >= 2;
-
-  const genreBooks = useMemo(() => {
-    if (!selectedGenre) return searchResults;
-    return searchResults.filter((b) =>
-      b.genres.some((g) =>
-        g.toLowerCase().includes(selectedGenre.toLowerCase()),
-      ),
-    );
-  }, [searchResults, selectedGenre]);
 
   const handleAddBook = (book: Book) => {
     if (!user) return;
@@ -373,13 +409,15 @@ export const DiscoverScreen = () => {
                       setActiveTab(tab.id);
                       setSelectedGenre(null);
                     }}
-                    style={isActive && {
+                    style={
+                      isActive && {
                         backgroundColor: '#a0c4a7',
                         borderTopLeftRadius: index === 0 ? 7 : 0,
                         borderBottomLeftRadius: index === 0 ? 7 : 0,
                         borderTopRightRadius: index === 2 ? 7 : 0,
                         borderBottomRightRadius: index === 2 ? 7 : 0,
-                      }}
+                      }
+                    }
                   >
                     <View className="flex-row items-center gap-1">
                       <Text
@@ -432,6 +470,7 @@ export const DiscoverScreen = () => {
             {/* Genres tab */}
             {activeTab === 'genres' && (
               <View className="gap-4 px-5">
+                {/* Genre pills */}
                 <ScrollView
                   contentContainerStyle={{ gap: 8 }}
                   horizontal
@@ -439,67 +478,82 @@ export const DiscoverScreen = () => {
                 >
                   <Pressable
                     accessibilityLabel="All genres"
-                    className="rounded-full px-3 py-1"
+                    className="rounded-full px-5 py-2.5"
                     onPress={() => setSelectedGenre(null)}
                     style={{
                       backgroundColor: !selectedGenre ? '#7851A9' : '#f1edf8',
                     }}
                   >
                     <Text
-                      className={`text-[12px] ${!selectedGenre ? 'text-white' : 'text-[#7D5BA6]'}`}
+                      className={`text-[14px] ${
+                        !selectedGenre ? 'text-white' : 'text-[#7D5BA6]'
+                      }`}
                     >
                       All
                     </Text>
                   </Pressable>
-                  {ALL_GENRES.map((genre) => (
+                  {GENRE_CARDS.map((genre) => (
                     <Pressable
-                      key={genre}
-                      accessibilityLabel={genre}
-                      className="rounded-full px-3 py-1"
+                      key={genre.query}
+                      accessibilityLabel={genre.label}
+                      className="rounded-full px-5 py-2.5"
                       onPress={() =>
-                        setSelectedGenre(selectedGenre === genre ? null : genre)
+                        setSelectedGenre(
+                          selectedGenre === genre.query ? null : genre.query,
+                        )
                       }
                       style={{
                         backgroundColor:
-                          selectedGenre === genre ? '#7851A9' : '#f1edf8',
+                          selectedGenre === genre.query ? '#7851A9' : '#f1edf8',
                       }}
                     >
                       <Text
-                        className={`text-[12px] ${selectedGenre === genre ? 'text-white' : 'text-[#7D5BA6]'}`}
+                        className={`text-[14px] ${
+                          selectedGenre === genre.query
+                            ? 'text-white'
+                            : 'text-[#7D5BA6]'
+                        }`}
                       >
-                        {genre}
+                        {genre.label}
                       </Text>
                     </Pressable>
                   ))}
                 </ScrollView>
 
-                {genreBooks.length === 0 ? (
+                {/* Books */}
+                {isGenreLoading && <ActivityIndicator color="#7851A9" />}
+                {!isGenreLoading && !selectedGenre && (
                   <Text className="py-6 text-center text-[14px] text-[#6d7a88]">
-                    Search for books to explore by genre.
+                    Choose a genre to explore books.
                   </Text>
-                ) : (
-                  <>
-                    <ScrollView
-                      contentContainerStyle={{ gap: 12 }}
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                    >
-                      {genreBooks.map((book) => (
-                        <BookGenreCard key={book.id} book={book} />
-                      ))}
-                    </ScrollView>
-                    <View className="mt-2 gap-1">
-                      {genreBooks.map((book) => (
-                        <BookListRow
-                          key={book.id}
-                          book={book}
-                          onAdd={handleAddBook}
-                          onEdit={setEditingBook}
-                        />
-                      ))}
-                    </View>
-                  </>
                 )}
+                {!isGenreLoading &&
+                  selectedGenre &&
+                  genreBooks.length === 0 && (
+                    <Text className="py-6 text-center text-[14px] text-[#6d7a88]">
+                      No books found for this genre.
+                    </Text>
+                  )}
+                {!isGenreLoading &&
+                  selectedGenre &&
+                  genreBooks
+                    .reduce<Book[][]>((rows, book, i) => {
+                      if (i % 2 === 0) rows.push([book]);
+                      else rows[rows.length - 1]!.push(book);
+                      return rows;
+                    }, [])
+                    .map((pair, rowIdx) => (
+                      <View key={rowIdx} className="mb-1 flex-row gap-3">
+                        {pair.map((book) => (
+                          <TrendingBookCard
+                            key={book.id}
+                            book={book}
+                            onAdd={handleAddBook}
+                          />
+                        ))}
+                        {pair.length === 1 && <View className="flex-1" />}
+                      </View>
+                    ))}
               </View>
             )}
 
