@@ -24,6 +24,7 @@ import type { Book, BookStatus } from '@/types';
 
 type Props = {
   editBook?: Book | undefined;
+  onBookEdited?: (book: Book) => void;
   onBookSaved?: (book: Book, status: BookStatus) => void;
   onClose: () => void;
   userId: string;
@@ -35,8 +36,11 @@ type FormState = {
   coverImage: string;
   description: string;
   genres: string;
+  isbn: string;
+  language: string;
   pages: string;
   publishedYear: string;
+  publisher: string;
   title: string;
 };
 
@@ -47,8 +51,11 @@ const INITIAL_FORM: FormState = {
   coverImage: '',
   description: '',
   genres: '',
+  isbn: '',
+  language: '',
   pages: '',
   publishedYear: '',
+  publisher: '',
   title: '',
 };
 
@@ -57,8 +64,11 @@ const bookToForm = (book: Book): FormState => ({
   coverImage: book.coverImage,
   description: book.description,
   genres: book.genres.join(', '),
+  isbn: book.isbn ?? '',
+  language: book.language ?? '',
   pages: book.pages > 0 ? String(book.pages) : '',
   publishedYear: book.publishedYear > 0 ? String(book.publishedYear) : '',
+  publisher: book.publisher ?? '',
   title: book.title,
 });
 
@@ -67,6 +77,7 @@ export const AddBookModal = ({
   onClose,
   userId,
   editBook,
+  onBookEdited,
   onBookSaved,
 }: Props) => {
   const isEditing = !!editBook;
@@ -104,7 +115,6 @@ export const AddBookModal = ({
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       aspect: [2, 3],
-      base64: false,
       mediaTypes: 'images',
       quality: 0.7,
     });
@@ -122,11 +132,10 @@ export const AddBookModal = ({
 
       const response = await fetch(asset.uri);
       const blob = await response.blob();
-      const arrayBuffer = await new Response(blob).arrayBuffer();
 
       const { error } = await supabase.storage
         .from('book-covers')
-        .upload(fileName, arrayBuffer, { contentType: mimeType, upsert: true });
+        .upload(fileName, blob, { contentType: mimeType, upsert: true });
 
       if (error) throw error;
 
@@ -165,10 +174,13 @@ export const AddBookModal = ({
       coverImage: form.coverImage.trim() || undefined,
       description: form.description.trim() || undefined,
       genres: genres.length ? genres : undefined,
+      isbn: form.isbn.trim() || undefined,
+      language: form.language.trim() || undefined,
       pages: form.pages ? parseInt(form.pages, 10) : undefined,
       publishedYear: form.publishedYear
         ? parseInt(form.publishedYear, 10)
         : undefined,
+      publisher: form.publisher.trim() || undefined,
       title: form.title.trim(),
     };
 
@@ -196,6 +208,7 @@ export const AddBookModal = ({
 
       setForm(INITIAL_FORM);
       setCoverLocalUri(null);
+      onBookEdited?.(book);
       onClose();
 
       // Ask if user wants to add the book to a shelf
@@ -348,6 +361,30 @@ export const AddBookModal = ({
                 placeholder="Fiction, Drama, Historical"
                 value={form.genres}
               />
+              <Field
+                label="Publisher"
+                onChangeText={set('publisher')}
+                placeholder="Penguin Books"
+                value={form.publisher}
+              />
+              <View className="flex-row gap-3">
+                <View className="flex-1">
+                  <Field
+                    label="Language"
+                    onChangeText={set('language')}
+                    placeholder="English"
+                    value={form.language}
+                  />
+                </View>
+                <View className="flex-1">
+                  <Field
+                    label="ISBN"
+                    onChangeText={set('isbn')}
+                    placeholder="978-3-16-148410-0"
+                    value={form.isbn}
+                  />
+                </View>
+              </View>
               <View className="flex-row gap-3">
                 <View className="flex-1">
                   <Field
