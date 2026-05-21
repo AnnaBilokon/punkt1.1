@@ -14,12 +14,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/atoms/Text';
 import { AppDialog, type DialogButton } from '@/components/molecules/AppDialog';
 import { AddBookModal } from '@/features/discover/components/AddBookModal';
+import { AddToShelfModal } from '@/features/library/components/AddToShelfModal';
 import { useBookSearch } from '@/features/discover/hooks/useBookSearch';
 import { useGenreBooks } from '@/features/discover/hooks/useGenreBooks';
 import { useNytBestsellers } from '@/features/discover/hooks/useNytBestsellers';
 import { useAuthStore } from '@/store/authStore';
 import { useBookStore } from '@/store/bookStore';
-import type { Book, BookStatus } from '@/types';
+import type { Book } from '@/types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const bookHref = (id: string) => `/book/${id}` as any;
@@ -274,6 +275,7 @@ export const DiscoverScreen = () => {
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | undefined>(undefined);
+  const [addToShelfBook, setAddToShelfBook] = useState<Book | null>(null);
   const [dialog, setDialog] = useState<{
     buttons: DialogButton[];
     message?: string;
@@ -294,26 +296,7 @@ export const DiscoverScreen = () => {
 
   const handleAddBook = (book: Book) => {
     if (!user) return;
-    setDialog({
-      title: `Add "${book.title}"`,
-      message: 'Choose a shelf:',
-      buttons: [
-        {
-          label: 'Want to Read',
-          onPress: () =>
-            void addBook(user.id, book, 'want-to-read' as BookStatus),
-        },
-        {
-          label: 'Currently Reading',
-          onPress: () => void addBook(user.id, book, 'reading' as BookStatus),
-        },
-        {
-          label: 'Finished',
-          onPress: () => void addBook(user.id, book, 'completed' as BookStatus),
-        },
-        { label: 'Cancel', type: 'cancel', onPress: () => {} },
-      ],
-    });
+    setAddToShelfBook(book);
   };
 
   const tabs: { id: DiscoverTab; label: string }[] = [
@@ -581,6 +564,12 @@ export const DiscoverScreen = () => {
           }}
         />
       )}
+      <AddToShelfModal
+        {...(addToShelfBook ? { book: addToShelfBook } : {})}
+        bookApiId={addToShelfBook?.id ?? null}
+        visible={addToShelfBook !== null}
+        onClose={() => setAddToShelfBook(null)}
+      />
       <AppDialog
         buttons={dialog?.buttons ?? []}
         message={dialog?.message}

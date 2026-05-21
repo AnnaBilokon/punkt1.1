@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { memo, useEffect, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, View } from 'react-native';
+import { memo, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, View } from 'react-native';
 
 import { Text } from '@/components/atoms/Text';
 import { useBookShelfIds } from '@/features/library/hooks/useBookShelfIds';
@@ -19,7 +19,7 @@ type Props = {
 };
 
 const DEFAULT_SHELVES: { label: string; status: BookStatus }[] = [
-  { label: 'Want to Read', status: 'want-to-read' },
+  { label: 'TBR', status: 'want-to-read' },
   { label: 'Currently Reading', status: 'reading' },
   { label: 'Finished', status: 'completed' },
 ];
@@ -41,8 +41,14 @@ export const AddToShelfModal = memo(({ book, bookApiId, onClose, visible }: Prop
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
 
+  // Only initialize state when the modal transitions from closed → open,
+  // not on background refetches that update currentShelfIds/originalStatus
+  // while the user is actively making selections.
+  const wasVisibleRef = useRef(false);
   useEffect(() => {
-    if (visible) {
+    const justOpened = visible && !wasVisibleRef.current;
+    wasVisibleRef.current = visible;
+    if (justOpened) {
       setSelectedStatus(originalStatus);
       setSelected(new Set(currentShelfIds));
     }
@@ -85,6 +91,8 @@ export const AddToShelfModal = memo(({ book, bookApiId, onClose, visible }: Prop
 
       await Promise.all(ops);
       onClose();
+    } catch (e) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'Could not save. Please try again.');
     } finally {
       setSaving(false);
     }

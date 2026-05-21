@@ -12,7 +12,7 @@ import type { Book } from '@/types';
 const SHELF_LABELS: Record<string, string> = {
   completed: 'Finished',
   reading: 'Currently Reading',
-  'want-to-read': 'Want to Read',
+  'want-to-read': 'TBR',
 };
 
 const HORIZONTAL_PADDING = 16;

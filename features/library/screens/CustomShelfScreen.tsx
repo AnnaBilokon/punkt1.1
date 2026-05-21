@@ -180,6 +180,8 @@ export const CustomShelfScreen = memo(
     const removeBookFromShelf = useShelfStore((s) => s.removeBookFromShelf);
     const deleteShelf = useShelfStore((s) => s.deleteShelf);
     const renameShelf = useShelfStore((s) => s.renameShelf);
+    const archiveShelf = useShelfStore((s) => s.archiveShelf);
+    const unarchiveShelf = useShelfStore((s) => s.unarchiveShelf);
     const [addModalVisible, setAddModalVisible] = useState(false);
     const [renameVisible, setRenameVisible] = useState(false);
 
@@ -196,14 +198,18 @@ export const CustomShelfScreen = memo(
     const handleLongPress = useCallback(
       (bookId: string) => {
         if (!user) return;
-        Alert.alert('Remove from shelf', 'Remove this book from the shelf?', [
-          {
-            text: 'Remove',
-            style: 'destructive',
-            onPress: () => void removeBookFromShelf(shelf.id, bookId, user.id),
-          },
-          { style: 'cancel', text: 'Cancel' },
-        ]);
+        Alert.alert(
+          'Remove from shelf',
+          'This will remove the book from this shelf only. It will stay in your library.',
+          [
+            {
+              text: 'Remove from shelf',
+              style: 'destructive',
+              onPress: () => void removeBookFromShelf(shelf.id, bookId, user.id),
+            },
+            { style: 'cancel', text: 'Cancel' },
+          ],
+        );
       },
       [shelf.id, removeBookFromShelf, user],
     );
@@ -222,6 +228,47 @@ export const CustomShelfScreen = memo(
     const handleMenuPress = useCallback(() => {
       Alert.alert(shelf.name, undefined, [
         { text: 'Rename', onPress: () => setRenameVisible(true) },
+        shelf.isArchived
+          ? {
+              text: 'Unarchive',
+              onPress: () => {
+                if (!user) return;
+                Alert.alert(
+                  'Unarchive shelf',
+                  `"${shelf.name}" will appear in your main shelves again.`,
+                  [
+                    {
+                      text: 'Unarchive',
+                      onPress: async () => {
+                        await unarchiveShelf(user.id, shelf.id);
+                        router.back();
+                      },
+                    },
+                    { style: 'cancel', text: 'Cancel' },
+                  ],
+                );
+              },
+            }
+          : {
+              text: 'Archive shelf',
+              onPress: () => {
+                if (!user) return;
+                Alert.alert(
+                  'Archive shelf',
+                  `"${shelf.name}" will be hidden from your main shelves. You can unarchive it any time.`,
+                  [
+                    {
+                      text: 'Archive',
+                      onPress: async () => {
+                        await archiveShelf(user.id, shelf.id);
+                        router.back();
+                      },
+                    },
+                    { style: 'cancel', text: 'Cancel' },
+                  ],
+                );
+              },
+            },
         {
           text: 'Delete shelf',
           style: 'destructive',
@@ -246,7 +293,7 @@ export const CustomShelfScreen = memo(
         },
         { style: 'cancel', text: 'Cancel' },
       ]);
-    }, [shelf, deleteShelf, user, router]);
+    }, [shelf, deleteShelf, archiveShelf, unarchiveShelf, user, router]);
 
     const handleRename = useCallback(
       async (name: string) => {
@@ -259,7 +306,7 @@ export const CustomShelfScreen = memo(
 
     const allItems: GridItem[] = [
       ...books.map((book): GridItem => ({ type: 'book', book })),
-      { type: 'add' },
+      ...(!shelf.isArchived ? [{ type: 'add' } as GridItem] : []),
     ];
     const rem = allItems.length % NUM_COLUMNS;
     if (rem !== 0) {
@@ -284,13 +331,23 @@ export const CustomShelfScreen = memo(
             </Text>
           </Pressable>
           <View className="flex-row items-end justify-between">
-            <Text
-              className="flex-1 text-[24px] font-bold text-black"
-              numberOfLines={1}
-              variant="body"
-            >
-              {shelf.name}
-            </Text>
+            <View className="flex-1 gap-1">
+              <Text
+                className="text-[24px] font-bold text-black"
+                numberOfLines={1}
+                variant="body"
+              >
+                {shelf.name}
+              </Text>
+              {shelf.isArchived && (
+                <View className="flex-row items-center gap-1 self-start rounded-full bg-[#f0f0f0] px-2.5 py-0.5">
+                  <Ionicons color="#9b9b9b" name="archive-outline" size={11} />
+                  <Text className="text-[11px] text-[#9b9b9b]" variant="body">
+                    Archived
+                  </Text>
+                </View>
+              )}
+            </View>
             <View className="flex-row items-center gap-3">
               <Text className="mb-0.5 text-[13px] text-[#9b9b9b]" variant="body">
                 {books.length} book{books.length !== 1 ? 's' : ''}
