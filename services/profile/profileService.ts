@@ -1,20 +1,141 @@
+import { authService } from '@/services/auth/authService';
 import { supabase } from '@/services/supabase';
+import type { HomeWidgets, Profile } from '@/types';
+import { DEFAULT_HOME_WIDGETS } from '@/types';
+
+type ProfileRow = {
+  avatar_url: string | null;
+  bio: string | null;
+  display_name: string;
+  home_widgets: HomeWidgets | null;
+  id: string;
+  tbr_order: string[] | null;
+};
+
+const parseWidgets = (raw: unknown): HomeWidgets => {
+  if (Array.isArray(raw) && raw.length > 0 && 'id' in (raw[0] as object)) {
+    return raw as HomeWidgets;
+  }
+  // Legacy: boolean-object shape from before the array migration
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    return DEFAULT_HOME_WIDGETS.map((w) => ({
+      ...w,
+      enabled: (raw as Record<string, boolean>)[w.id] ?? true,
+    }));
+  }
+  return DEFAULT_HOME_WIDGETS;
+};
+
+const rowToProfile = (row: ProfileRow): Profile => ({
+  avatarUrl: row.avatar_url,
+  bio: row.bio,
+  displayName: row.display_name,
+  homeWidgets: parseWidgets(row.home_widgets),
+  id: row.id,
+  tbrOrder: Array.isArray(row.tbr_order) ? row.tbr_order : [],
+});
 
 export const profileService = {
   getMemberSinceYear: async (): Promise<number> => {
     const { data } = await supabase.auth.getSession();
     const createdAt = data.session?.user?.created_at;
-    return createdAt
-      ? new Date(createdAt).getFullYear()
-      : new Date().getFullYear();
+    return createdAt ? new Date(createdAt).getFullYear() : new Date().getFullYear();
   },
 
   getReviewsCount: async (userId: string): Promise<number> => {
     const { count, error } = await supabase
-      .from('reviews')
+      .from('user_books')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .not('review', 'is', null);
     if (error) return 0;
     return count ?? 0;
+  },
+
+  getProfile: async (userId: string): Promise<Profile> => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error) throw new Error(error.message);
+
+    if (!data) {
+      return profileService.upsertProfile(userId, {
+        displayName: '',
+        bio: null,
+        avatarUrl: null,
+      });
+    }
+
+    return rowToProfile(data as ProfileRow);
+  },
+
+  upsertProfile: async (
+    userId: string,
+    updates: { avatarUrl: string | null; bio: string | null; displayName: string },
+  ): Promise<Profile> => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert(
+        {
+          avatar_url: updates.avatarUrl,
+          bio: updates.bio,
+          display_name: updates.displayName,
+          id: userId,
+        },
+        { onConflict: 'id' },
+      )
+      .select()
+      .single();
+
+    if (error || !data) throw new Error(error?.message ?? 'Failed to save profile');
+    return rowToProfile(data as ProfileRow);
+  },
+
+  updateHomeWidgets: async (userId: string, widgets: HomeWidgets): Promise<void> => {
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: userId, home_widgets: widgets }, { onConflict: 'id' });
+    if (error) throw new Error(error.message);
+  },
+
+  updateTbrOrder: async (userId: string, order: string[]): Promise<void> => {
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: userId, tbr_order: order }, { onConflict: 'id' });
+    if (error) throw new Error(error.message);
+  },
+
+  uploadAvatar: async (userId: string, localUri: string): Promise<string> => {
+    const ext = localUri.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const fileName = `${userId}/avatar.${ext}`;
+    const mimeType = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+
+    const response = await fetch(localUri);
+    const blob = await response.blob();
+
+    const { error } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, blob, { contentType: mimeType, upsert: true });
+
+    if (error) throw new Error(error.message);
+
+    const { data: urlData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(fileName);
+
+    return urlData.publicUrl;
+  },
+
+  changePassword: async (newPassword: string): Promise<void> => {
+    const { error } = await authService.changePassword(newPassword);
+    if (error) throw new Error(error.message);
+  },
+
+  deleteAccount: async (): Promise<void> => {
+    const { error } = await supabase.rpc('delete_account');
+    if (error) throw new Error(error.message);
   },
 };
