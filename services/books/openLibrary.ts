@@ -31,19 +31,23 @@ const mapOLDoc = (doc: OLDoc): Book => ({
   progress: 0,
   publishedYear: doc.first_publish_year ?? 0,
   rating: doc.ratings_average ? Math.round(doc.ratings_average * 10) / 10 : 0,
-  status: 'want-to-read',
+  status: null,
   title: doc.title,
 });
 
+const FIELDS =
+  'key,title,author_name,cover_i,subject,first_publish_year,number_of_pages_median,ratings_average';
+
 export const searchOpenLibrary = async (query: string): Promise<Book[]> => {
   const data = await openLibraryClient.get<OLResponse>('/search.json', {
-    params: {
-      fields:
-        'key,title,author_name,cover_i,subject,first_publish_year,number_of_pages_median,ratings_average',
-      limit: 20,
-      q: query,
-      sort: 'new',
-    },
+    params: { fields: FIELDS, limit: 20, q: query },
+  });
+  return (data.docs ?? []).map(mapOLDoc);
+};
+
+export const searchOpenLibraryByIsbn = async (isbn: string): Promise<Book[]> => {
+  const data = await openLibraryClient.get<OLResponse>('/search.json', {
+    params: { fields: FIELDS, q: `isbn:${isbn}`, limit: 3 },
   });
   return (data.docs ?? []).map(mapOLDoc);
 };
