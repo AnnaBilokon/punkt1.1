@@ -14,7 +14,7 @@ export const ProgressCircle = ({ progress }: ProgressCircleProps) => (
       size={100}
       strokeWidth={15}
       textClassName="text-[#313C5D]"
-      trackColor="#797DEA"
+      trackColor="#7851A9"
     />
   </View>
 );

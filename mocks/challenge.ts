@@ -1,11 +1,13 @@
 import type { Book, ReadingChallenge } from '@/types';
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 export const mockChallenge: ReadingChallenge = {
-  completed: 12,
+  completed: 0,
   goal: 25,
-  id: 'challenge-2025',
+  id: `challenge-${CURRENT_YEAR}`,
   label: 'Keep reading.',
-  year: 2025,
+  year: CURRENT_YEAR,
 };
 
 const completedBook = (
