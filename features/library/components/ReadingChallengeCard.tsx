@@ -36,7 +36,7 @@ export const ReadingChallengeCard = memo(
           <View className="flex-row items-center justify-between gap-4">
             <View className="max-w-[62%] gap-2">
               <Text
-                className="text-[26px] font-semibold text-[#797DEA]"
+                className="text-[26px] font-semibold text-[#7851A9]"
                 variant="body"
               >
                 {challenge.completed}/{challenge.goal} books

@@ -25,10 +25,10 @@ import { getChallengeProgress } from '@/entities/challenge';
 import { getInitials } from '@/entities/user';
 import { useNytBestsellers } from '@/features/discover/hooks/useNytBestsellers';
 import { useCustomShelves } from '@/features/library/hooks/useCustomShelves';
+import { useLiveChallenge } from '@/features/library/hooks/useLiveChallenge';
 import { useLibrarySections } from '@/features/library/hooks/useLibrarySections';
 import { WhatToReadNextCard } from '@/features/library/components/WhatToReadNextCard';
 import { useAuthStore } from '@/store/authStore';
-import { useChallengeStore } from '@/store/challengeStore';
 import { useProfileStore } from '@/store/profileStore';
 import type { Book } from '@/types';
 
@@ -87,7 +87,7 @@ const NowReadingCard = memo(
             <View className="mt-1 gap-1">
               <View className="h-[6px] overflow-hidden rounded-full bg-[#e5e5e5]">
                 <View
-                  className="h-full rounded-full bg-[#797DEA]"
+                  className="h-full rounded-full bg-[#7851A9]"
                   style={{ width: `${book.progress}%` }}
                 />
               </View>
@@ -109,7 +109,7 @@ const NowReadingCard = memo(
 NowReadingCard.displayName = 'NowReadingCard';
 
 const ChallengeStrip = memo(({ onPress }: { onPress: () => void }) => {
-  const challenge = useChallengeStore((s) => s.challenge);
+  const { challenge } = useLiveChallenge();
   const progress = getChallengeProgress(challenge);
 
   return (
@@ -120,7 +120,7 @@ const ChallengeStrip = memo(({ onPress }: { onPress: () => void }) => {
             <Text className="text-[13px] text-[#6d6d6d]" variant="caption">
               {challenge.year} Reading Challenge
             </Text>
-            <Text className="text-[22px] font-semibold text-[#797DEA]" variant="body">
+            <Text className="text-[22px] font-semibold text-[#7851A9]" variant="body">
               {challenge.completed}/{challenge.goal} books
             </Text>
             <Text className="text-[13px] text-black" variant="caption">
@@ -133,7 +133,7 @@ const ChallengeStrip = memo(({ onPress }: { onPress: () => void }) => {
             size={72}
             strokeWidth={10}
             textClassName="text-[#313C5D]"
-            trackColor="#797DEA"
+            trackColor="#7851A9"
           />
         </View>
       </Card>
@@ -147,7 +147,7 @@ ChallengeStrip.displayName = 'ChallengeStrip';
 export const HomeScreen = memo(() => {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
-  const { keepReading = [], wantToRead = [], finished = [], isFetching } = useLibrarySections();
+  const { dnf = [], keepReading = [], wantToRead = [], finished = [], isFetching } = useLibrarySections();
   const { data: picks = [] } = useNytBestsellers();
   const { data: customShelves = [] } = useCustomShelves(user?.id ?? null);
   const widgets = useProfileStore((s) => s.homeWidgets);
@@ -198,7 +198,7 @@ export const HomeScreen = memo(() => {
                       key={i}
                       className="rounded-full"
                       style={{
-                        backgroundColor: i === activeIndex ? '#797DEA' : '#d9d9d9',
+                        backgroundColor: i === activeIndex ? '#7851A9' : '#d9d9d9',
                         height: 6,
                         width: i === activeIndex ? 16 : 6,
                       }}
@@ -217,15 +217,26 @@ export const HomeScreen = memo(() => {
           );
 
         case 'whatToReadNext':
-          return <WhatToReadNextCard key="whatToReadNext" wantToRead={wantToRead} />;
+          return (
+            <WhatToReadNextCard
+              key="whatToReadNext"
+              customShelves={customShelves}
+              wantToRead={wantToRead}
+            />
+          );
 
         case 'tbrShelf':
           return wantToRead.length > 0 ? (
             <View key="tbrShelf" className="gap-3">
               <View className="flex-row items-center justify-between">
-                <Text className="text-[17px] font-semibold text-black" variant="body">TBR</Text>
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-[17px] font-semibold text-black" variant="body">TBR</Text>
+                  <View style={{ backgroundColor: '#ede9f7', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 }}>
+                    <Text className="text-[12px] font-semibold text-[#7851A9]" variant="caption">{wantToRead.length}</Text>
+                  </View>
+                </View>
                 <Pressable onPress={() => router.push('/shelf/want-to-read' as any)} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
-                  <Text className="text-[13px] text-[#797DEA]" variant="body">See all</Text>
+                  <Text className="text-[13px] text-[#7851A9]" variant="body">See all</Text>
                 </Pressable>
               </View>
               <ScrollView className="-mx-5" contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }} horizontal showsHorizontalScrollIndicator={false}>
@@ -240,13 +251,40 @@ export const HomeScreen = memo(() => {
           return finished.length > 0 ? (
             <View key="finished" className="gap-3">
               <View className="flex-row items-center justify-between">
-                <Text className="text-[17px] font-semibold text-black" variant="body">Finished</Text>
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-[17px] font-semibold text-black" variant="body">Finished</Text>
+                  <View style={{ backgroundColor: '#ede9f7', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 }}>
+                    <Text className="text-[12px] font-semibold text-[#7851A9]" variant="caption">{finished.length}</Text>
+                  </View>
+                </View>
                 <Pressable onPress={() => router.push('/shelf/completed' as any)} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
-                  <Text className="text-[13px] text-[#797DEA]" variant="body">See all</Text>
+                  <Text className="text-[13px] text-[#7851A9]" variant="body">See all</Text>
                 </Pressable>
               </View>
               <ScrollView className="-mx-5" contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }} horizontal showsHorizontalScrollIndicator={false}>
                 {finished.slice(0, 12).map((book) => (
+                  <BookCard key={book.id} book={book} onPress={() => router.push(bookHref(book.id))} variant="compact" />
+                ))}
+              </ScrollView>
+            </View>
+          ) : null;
+
+        case 'dnfShelf':
+          return dnf.length > 0 ? (
+            <View key="dnfShelf" className="gap-3">
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-[17px] font-semibold text-black" variant="body">Did Not Finish</Text>
+                  <View style={{ backgroundColor: '#fdecea', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 }}>
+                    <Text className="text-[12px] font-semibold text-[#c0392b]" variant="caption">{dnf.length}</Text>
+                  </View>
+                </View>
+                <Pressable onPress={() => router.push('/shelf/dnf' as any)} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
+                  <Text className="text-[13px] text-[#7851A9]" variant="body">See all</Text>
+                </Pressable>
+              </View>
+              <ScrollView className="-mx-5" contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }} horizontal showsHorizontalScrollIndicator={false}>
+                {dnf.slice(0, 12).map((book) => (
                   <BookCard key={book.id} book={book} onPress={() => router.push(bookHref(book.id))} variant="compact" />
                 ))}
               </ScrollView>
@@ -262,14 +300,14 @@ export const HomeScreen = memo(() => {
               <View className="flex-row items-center justify-between">
                 <Text className="text-[17px] font-semibold text-black" variant="body">My Shelves</Text>
                 <Pressable onPress={() => router.push('/(tabs)/library' as any)} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
-                  <Text className="text-[13px] text-[#797DEA]" variant="body">See all</Text>
+                  <Text className="text-[13px] text-[#7851A9]" variant="body">See all</Text>
                 </Pressable>
               </View>
               {customShelves.slice(0, 4).map((shelf) => (
                 <Pressable key={shelf.id} onPress={() => router.push(`/custom-shelf/${shelf.id}` as any)} style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
                   <Card className="flex-row items-center rounded-[17px] border-[#d9d9d9] bg-[#f9f9f9] px-5 py-4">
                     <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-[#ede9f7]">
-                      <Ionicons color="#797DEA" name="bookmark-outline" size={16} />
+                      <Ionicons color="#7851A9" name="bookmark-outline" size={16} />
                     </View>
                     <View className="flex-1">
                       <Text className="text-[15px] font-medium text-black" variant="body">{shelf.name}</Text>
@@ -286,7 +324,7 @@ export const HomeScreen = memo(() => {
           return null;
       }
     },
-    [router, keepReading, wantToRead, finished, customShelves, isFetching, activeIndex, CARD_WIDTH, CARD_GAP],
+    [router, keepReading, wantToRead, finished, dnf, customShelves, isFetching, activeIndex, CARD_WIDTH, CARD_GAP],
   );
 
   return (

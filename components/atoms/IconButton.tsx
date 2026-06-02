@@ -48,7 +48,7 @@ export const IconButton = memo(
         }}
         style={animatedStyle}
       >
-        <Ionicons color="#6E56CF" name={icon} size={20} />
+        <Ionicons color="#7851A9" name={icon} size={20} />
       </AnimatedPressable>
     );
   },

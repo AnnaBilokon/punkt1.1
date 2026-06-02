@@ -10,7 +10,7 @@ import { useAuthStore } from '@/store/authStore';
 import type { Book } from '@/types';
 
 export default function BookDetailRoute() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, tab } = useLocalSearchParams<{ id: string; tab?: string }>();
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
 
@@ -57,5 +57,10 @@ export default function BookDetailRoute() {
     );
   }
 
-  return <BookDetailScreen book={book} />;
+  return (
+    <BookDetailScreen
+      book={book}
+      initialTab={tab === 'info' ? 'info' : 'my-reading'}
+    />
+  );
 }

@@ -1,17 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { memo, useState } from 'react';
-import { Image, Modal, Pressable, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, Pressable, View } from 'react-native';
 
 import {
   Button,
   Card,
   Container,
+  GoalScrollPicker,
   ProgressRing,
   Screen,
   Text,
 } from '@/components';
 import { getChallengeProgress } from '@/entities/challenge';
+import { useLiveChallenge } from '@/features/library/hooks/useLiveChallenge';
 import { useChallengeStore } from '@/store/challengeStore';
 import type { Book } from '@/types';
 
@@ -76,11 +78,11 @@ const MonthBar = memo(
     const BAR_MAX_HEIGHT = 60;
     const barHeight =
       maxCount > 0 ? Math.max(4, (count / maxCount) * BAR_MAX_HEIGHT) : 4;
-    const barColor = isFuture ? '#f0f0f0' : isSelected ? '#797DEA' : '#d0d0e8';
+    const barColor = isFuture ? '#f0f0f0' : isSelected ? '#7851A9' : '#d0d0e8';
 
     return (
-      <TouchableOpacity
-        activeOpacity={0.7}
+      <Pressable
+        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
         className="flex-1 items-center gap-1"
         onPress={onPress}
       >
@@ -103,21 +105,25 @@ const MonthBar = memo(
           />
         </View>
         <Text
-          className={`text-[9px] ${isSelected ? 'font-semibold text-[#797DEA]' : 'text-[#9b9b9b]'}`}
+          className={`text-[9px] ${isSelected ? 'font-semibold text-[#7851A9]' : 'text-[#9b9b9b]'}`}
           variant="caption"
         >
           {label}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     );
   },
 );
 MonthBar.displayName = 'MonthBar';
 
-const BookRow = memo(({ book }: { book: Book }) => {
+const BookRow = memo(({ book, onPress }: { book: Book; onPress: () => void }) => {
   const coverSource = { uri: book.coverImage };
   return (
-    <View className="flex-row items-center gap-3 py-2">
+    <Pressable
+      className="flex-row items-center gap-3 py-2"
+      onPress={onPress}
+      style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+    >
       <Image
         className="h-[60px] w-[42px] rounded-[8px] bg-[#e0e0e0]"
         source={coverSource}
@@ -153,7 +159,8 @@ const BookRow = memo(({ book }: { book: Book }) => {
           ) : null}
         </View>
       </View>
-    </View>
+      <Ionicons color="#c0c0c0" name="chevron-forward" size={16} />
+    </Pressable>
   );
 });
 BookRow.displayName = 'BookRow';
@@ -184,7 +191,7 @@ const EditGoalSheet = memo(
             className="absolute inset-0 bg-black/40"
             onPress={onClose}
           />
-          <View className="gap-6 rounded-t-[28px] bg-white px-6 pb-10 pt-3">
+          <View className="gap-4 rounded-t-[28px] bg-white px-6 pb-10 pt-3">
             <View className="h-1 w-10 self-center rounded-full bg-[#d9d9d9]" />
             <Text
               className="text-center text-[18px] font-semibold text-black"
@@ -192,30 +199,9 @@ const EditGoalSheet = memo(
             >
               Edit reading goal
             </Text>
-            <View className="flex-row items-center justify-center gap-6">
-              <TouchableOpacity
-                activeOpacity={0.7}
-                className="h-12 w-12 items-center justify-center rounded-full bg-[#f0f0f0]"
-                onPress={() => setValue((v) => Math.max(1, v - 1))}
-              >
-                <Ionicons color="#313C5D" name="remove" size={22} />
-              </TouchableOpacity>
-              <Text
-                className="w-24 text-center text-[52px] font-bold text-[#797DEA]"
-                variant="display"
-              >
-                {value}
-              </Text>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                className="h-12 w-12 items-center justify-center rounded-full bg-[#f0f0f0]"
-                onPress={() => setValue((v) => v + 1)}
-              >
-                <Ionicons color="#313C5D" name="add" size={22} />
-              </TouchableOpacity>
-            </View>
+            <GoalScrollPicker initialValue={value} onChange={setValue} />
             <Text
-              className="text-center text-[14px] text-[#9b9b9b]"
+              className="text-center text-[13px] text-[#9b9b9b]"
               variant="caption"
             >
               books in {new Date().getFullYear()}
@@ -246,9 +232,7 @@ EditGoalSheet.displayName = 'EditGoalSheet';
 
 export const ReadingChallengeDetailScreen = memo(() => {
   const router = useRouter();
-  const challenge = useChallengeStore((s) => s.challenge);
-  const monthlyBooks = useChallengeStore((s) => s.monthlyBooks);
-  const streak = useChallengeStore((s) => s.streak);
+  const { challenge, monthlyBooks, streak } = useLiveChallenge();
   const updateGoal = useChallengeStore((s) => s.updateGoal);
 
   const [selectedMonth, setSelectedMonth] = useState<number>(CURRENT_MONTH);
@@ -290,33 +274,33 @@ export const ReadingChallengeDetailScreen = memo(() => {
     <Screen className="bg-[#fdfdfd]" contentClassName="gap-6 pt-2" scrollable>
       <Container className="gap-6 pb-6">
         <View className="flex-row items-center justify-between">
-          <TouchableOpacity
-            activeOpacity={0.7}
+          <Pressable
             className="flex-row items-center gap-1"
             onPress={() => router.back()}
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
           >
             <Ionicons color="#6d6d6d" name="chevron-back" size={20} />
             <Text className="text-[14px] text-[#6d6d6d]" variant="body">
               Library
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.7}
+          </Pressable>
+          <Pressable
             onPress={() => setEditGoalVisible(true)}
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
           >
             <Text
-              className="text-[14px] font-medium text-[#797DEA]"
+              className="text-[14px] font-medium text-[#7851A9]"
               variant="body"
             >
               Edit goal
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* Hero card */}
         <View
           className="items-center gap-4 overflow-hidden rounded-[24px] p-6"
-          style={{ backgroundColor: '#797DEA' }}
+          style={{ backgroundColor: '#7851A9' }}
         >
           <ProgressRing
             progress={progress}
@@ -389,7 +373,10 @@ export const ReadingChallengeDetailScreen = memo(() => {
             <Card className="rounded-[17px] border-[#d9d9d9] bg-[#f9f9f9] px-4 py-2">
               {selectedBooks.map((book, idx) => (
                 <View key={book.id}>
-                  <BookRow book={book} />
+                  <BookRow
+                    book={book}
+                    onPress={() => router.push(`/book/${book.id}` as any)}
+                  />
                   {idx < selectedBooks.length - 1 && (
                     <View className="h-[1px] bg-[#e8e8e8]" />
                   )}
@@ -412,11 +399,16 @@ export const ReadingChallengeDetailScreen = memo(() => {
           </Text>
           <View className="flex-row flex-wrap gap-2">
             {allCompletedBooks.map((book) => (
-              <Image
+              <Pressable
                 key={book.id}
-                className="h-[102px] w-[72px] rounded-[10px] bg-[#e0e0e0]"
-                source={{ uri: book.coverImage }}
-              />
+                onPress={() => router.push(`/book/${book.id}` as any)}
+                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+              >
+                <Image
+                  className="h-[102px] w-[72px] rounded-[10px] bg-[#e0e0e0]"
+                  source={{ uri: book.coverImage }}
+                />
+              </Pressable>
             ))}
             {Array.from({ length: placeholderCount }).map((_, i) => (
               <View

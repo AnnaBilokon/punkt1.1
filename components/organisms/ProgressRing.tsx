@@ -27,7 +27,7 @@ export const ProgressRing = memo(
   ({
     label,
     progress,
-    progressColor = '#6E56CF',
+    progressColor = '#7851A9',
     size = 92,
     strokeWidth = 10,
     textClassName = 'text-brand dark:text-brand-soft',
