@@ -9,6 +9,7 @@ type ProfileRow = {
   display_name: string;
   home_widgets: HomeWidgets | null;
   id: string;
+  preferred_genres: string[] | null;
   tbr_order: string[] | null;
 };
 
@@ -32,6 +33,7 @@ const rowToProfile = (row: ProfileRow): Profile => ({
   displayName: row.display_name,
   homeWidgets: parseWidgets(row.home_widgets),
   id: row.id,
+  preferredGenres: Array.isArray(row.preferred_genres) ? row.preferred_genres : [],
   tbrOrder: Array.isArray(row.tbr_order) ? row.tbr_order : [],
 });
 
@@ -131,6 +133,13 @@ export const profileService = {
 
   changePassword: async (newPassword: string): Promise<void> => {
     const { error } = await authService.changePassword(newPassword);
+    if (error) throw new Error(error.message);
+  },
+
+  updateGenres: async (userId: string, genres: string[]): Promise<void> => {
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: userId, preferred_genres: genres }, { onConflict: 'id' });
     if (error) throw new Error(error.message);
   },
 

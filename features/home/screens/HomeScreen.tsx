@@ -28,6 +28,7 @@ import { WhatToReadNextCard } from '@/features/library/components/WhatToReadNext
 import { useCustomShelves } from '@/features/library/hooks/useCustomShelves';
 import { useLibrarySections } from '@/features/library/hooks/useLibrarySections';
 import { useLiveChallenge } from '@/features/library/hooks/useLiveChallenge';
+import { useRandomQuote } from '@/features/library/hooks/useRandomQuote';
 import { useStreak } from '@/features/profile/hooks/useStreak';
 import { useAuthStore } from '@/store/authStore';
 import { useProfileStore } from '@/store/profileStore';
@@ -163,6 +164,7 @@ export const HomeScreen = memo(() => {
   const { data: picks = [] } = useNytBestsellers();
   const { data: customShelves = [] } = useCustomShelves(user?.id ?? null);
   const { data: streakData } = useStreak(user?.id ?? null);
+  const { data: randomQuote } = useRandomQuote(user?.id ?? null);
   const widgets = useProfileStore((s) => s.homeWidgets);
   const { width: screenWidth } = useWindowDimensions();
   const firstName = user?.name?.split(' ')[0] ?? 'there';
@@ -469,6 +471,34 @@ export const HomeScreen = memo(() => {
               </View>
             </Card>
           </TouchableOpacity>
+        );
+      }
+
+      case 'quoteOfTheDay': {
+        if (!randomQuote) return null;
+        const allBooks = [...keepReading, ...wantToRead, ...finished, ...dnf];
+        const quoteBook = allBooks.find((b) => b.id === randomQuote.bookApiId);
+        return (
+          <View key="quoteOfTheDay" className="gap-3">
+            <Text className="text-[17px] font-semibold text-black" variant="body">
+              Quote of the day
+            </Text>
+            <Card className="rounded-[17px] border-[#e8e8e8] bg-[#f9f9f9] px-5 py-4 gap-3">
+              <Text className="text-[32px] leading-none text-[#7851A9]" variant="body">"</Text>
+              <Text
+                className="text-[14px] leading-[22px] text-[#313C5D]"
+                numberOfLines={6}
+                variant="body"
+              >
+                {randomQuote.text}
+              </Text>
+              {quoteBook && (
+                <Text className="text-[12px] text-[#9b9b9b]" variant="caption">
+                  — {quoteBook.title}
+                </Text>
+              )}
+            </Card>
+          </View>
         );
       }
 

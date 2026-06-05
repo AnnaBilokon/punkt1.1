@@ -4,6 +4,7 @@ export type Profile = {
   displayName: string;
   homeWidgets: HomeWidgets;
   id: string;
+  preferredGenres: string[];
   tbrOrder: string[];
 };
 
@@ -12,6 +13,7 @@ export type WidgetId =
   | 'customShelves'
   | 'dnfShelf'
   | 'finished'
+  | 'quoteOfTheDay'
   | 'readingChallenge'
   | 'streak'
   | 'tbrShelf'
@@ -29,6 +31,7 @@ export const WIDGET_LABELS: Record<WidgetId, string> = {
   customShelves: 'My Shelves',
   dnfShelf: 'Did Not Finish',
   finished: 'Finished',
+  quoteOfTheDay: 'Quote of the Day',
   readingChallenge: 'Reading Challenge',
   streak: 'Reading Streak',
   tbrShelf: 'TBR shelf',
@@ -43,5 +46,6 @@ export const DEFAULT_HOME_WIDGETS: HomeWidgets = [
   { id: 'dnfShelf', enabled: false },
   { id: 'readingChallenge', enabled: true },
   { id: 'streak', enabled: false },
+  { id: 'quoteOfTheDay', enabled: false },
   { id: 'customShelves', enabled: true },
 ];

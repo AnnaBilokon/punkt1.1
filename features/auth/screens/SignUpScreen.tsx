@@ -42,7 +42,7 @@ export const SignUpScreen = () => {
         readingGoal: 0,
         username: result.user.email ?? '',
       });
-      router.replace('/(tabs)/library');
+      router.replace('/onboarding');
     }
   });
 
