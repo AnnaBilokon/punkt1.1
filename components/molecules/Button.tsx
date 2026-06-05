@@ -13,6 +13,7 @@ import { cn } from '@/shared/lib/cn';
 
 type ButtonProps = {
   className?: string;
+  disabled?: boolean;
   label: string;
   onPress?: () => void;
   tone?: 'primary' | 'secondary';
@@ -21,7 +22,7 @@ type ButtonProps = {
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export const Button = memo(
-  ({ className, label, onPress, tone = 'primary' }: ButtonProps) => {
+  ({ className, disabled, label, onPress, tone = 'primary' }: ButtonProps) => {
     const scale = useSharedValue(1);
 
     const animatedStyle = useAnimatedStyle(() => ({
@@ -37,8 +38,10 @@ export const Button = memo(
           tone === 'primary'
             ? 'bg-brand dark:bg-brand-soft'
             : 'border border-border bg-white dark:border-borderDark dark:bg-surfaceDark',
+          disabled && 'opacity-40',
           className,
         )}
+        disabled={disabled}
         hitSlop={minimumTouchTarget}
         onPress={onPress}
         onPressIn={() => {

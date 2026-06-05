@@ -11,17 +11,45 @@ const apiKeyParam = env.googleBooksApiKey ? { key: env.googleBooksApiKey } : {};
 
 export const searchGoogleBooks = async (
   query: string,
-  maxResults = 20,
+  maxResults = 40,
 ): Promise<Book[]> => {
   const data = await googleBooksClient.get('/volumes', {
-    params: {
-      langRestrict: 'en',
-      maxResults,
-      orderBy: 'newest',
-      printType: 'books',
-      q: query,
-      ...apiKeyParam,
-    },
+    params: { maxResults, orderBy: 'relevance', printType: 'books', q: query, ...apiKeyParam },
+  });
+  return mapGoogleBooksResponse(data as GoogleBooksResponse);
+};
+
+export const searchGoogleBooksByPublisher = async (
+  publisher: string,
+): Promise<Book[]> => {
+  const params = (startIndex: number) => ({
+    maxResults: 40,
+    orderBy: 'relevance',
+    printType: 'books',
+    q: `inpublisher:${publisher}`,
+    startIndex,
+    ...apiKeyParam,
+  });
+
+  const [page1, page2] = await Promise.allSettled([
+    googleBooksClient.get('/volumes', { params: params(0) }),
+    googleBooksClient.get('/volumes', { params: params(40) }),
+  ]);
+
+  const r1 = page1.status === 'fulfilled' ? mapGoogleBooksResponse(page1.value as GoogleBooksResponse) : [];
+  const r2 = page2.status === 'fulfilled' ? mapGoogleBooksResponse(page2.value as GoogleBooksResponse) : [];
+
+  const seen = new Set<string>();
+  return [...r1, ...r2].filter((b) => {
+    if (seen.has(b.id)) return false;
+    seen.add(b.id);
+    return true;
+  });
+};
+
+export const searchGoogleBooksByIsbn = async (isbn: string): Promise<Book[]> => {
+  const data = await googleBooksClient.get('/volumes', {
+    params: { q: `isbn:${isbn}`, ...apiKeyParam },
   });
   return mapGoogleBooksResponse(data as GoogleBooksResponse);
 };

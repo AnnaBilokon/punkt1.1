@@ -9,6 +9,7 @@ export const useLibrarySections = () => {
 
   return useMemo(
     () => ({
+      dnf: books.filter((book) => book.status === 'dnf'),
       finished: books.filter((book) => book.status === 'completed'),
       isFetching,
       keepReading: books.filter((book) => book.status === 'reading'),

@@ -6,6 +6,7 @@ import type { User } from '@/types';
 type AuthState = {
   initAuth: () => Promise<void>;
   isAuthenticated: boolean;
+  isInitialized: boolean;
   setUser: (user: User | null) => void;
   signOut: () => Promise<void>;
   user: User | null;
@@ -18,6 +19,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
     if (session?.user) {
       set({
         isAuthenticated: true,
+        isInitialized: true,
         user: {
           avatarUrl: '',
           booksReadThisYear: 0,
@@ -27,9 +29,12 @@ export const useAuthStore = create<AuthState>()((set) => ({
           username: session.user.email ?? '',
         },
       });
+    } else {
+      set({ isInitialized: true });
     }
   },
   isAuthenticated: false,
+  isInitialized: false,
   setUser: (user) => set({ isAuthenticated: Boolean(user), user }),
   signOut: async () => {
     await authService.signOut();

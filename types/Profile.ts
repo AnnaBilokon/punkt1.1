@@ -10,8 +10,10 @@ export type Profile = {
 export type WidgetId =
   | 'currentlyReading'
   | 'customShelves'
+  | 'dnfShelf'
   | 'finished'
   | 'readingChallenge'
+  | 'streak'
   | 'tbrShelf'
   | 'whatToReadNext';
 
@@ -25,8 +27,10 @@ export type HomeWidgets = WidgetItem[];
 export const WIDGET_LABELS: Record<WidgetId, string> = {
   currentlyReading: 'Currently Reading',
   customShelves: 'My Shelves',
+  dnfShelf: 'Did Not Finish',
   finished: 'Finished',
   readingChallenge: 'Reading Challenge',
+  streak: 'Reading Streak',
   tbrShelf: 'TBR shelf',
   whatToReadNext: 'What to Read Next',
 };
@@ -36,6 +40,8 @@ export const DEFAULT_HOME_WIDGETS: HomeWidgets = [
   { id: 'whatToReadNext', enabled: true },
   { id: 'tbrShelf', enabled: true },
   { id: 'finished', enabled: true },
+  { id: 'dnfShelf', enabled: false },
   { id: 'readingChallenge', enabled: true },
+  { id: 'streak', enabled: false },
   { id: 'customShelves', enabled: true },
 ];

@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   TextInput,
@@ -180,13 +179,6 @@ const EditProfileSheet = memo(
     const [name, setName] = useState(initialName);
     const [bio, setBio] = useState(initialBio);
     const [saving, setSaving] = useState(false);
-
-    useEffect(() => {
-      if (visible) {
-        setName(initialName);
-        setBio(initialBio);
-      }
-    }, [visible, initialName, initialBio]);
 
     const handleSave = useCallback(async () => {
       if (!name.trim()) return;
@@ -382,6 +374,7 @@ export const ProfileScreen = memo(() => {
 
   const [goalSheetVisible, setGoalSheetVisible] = useState(false);
   const [editProfileVisible, setEditProfileVisible] = useState(false);
+  const [editProfileKey, setEditProfileKey] = useState(0);
   const [changePasswordVisible, setChangePasswordVisible] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
@@ -571,7 +564,7 @@ export const ProfileScreen = memo(() => {
             ))}
           </View>
           {allEarned && (
-            <Text className="mt-1 text-center text-[13px] text-[#797DEA]" variant="caption">
+            <Text className="mt-1 text-center text-[13px] text-[#7851A9]" variant="caption">
               You&apos;ve earned all badges! 🎉
             </Text>
           )}
@@ -613,7 +606,7 @@ export const ProfileScreen = memo(() => {
             />
             <SettingsRow
               label="Edit profile"
-              onPress={() => setEditProfileVisible(true)}
+              onPress={() => { setEditProfileKey(k => k + 1); setEditProfileVisible(true); }}
             />
             <SettingsRow
               label="Change password"
@@ -653,6 +646,7 @@ export const ProfileScreen = memo(() => {
         visible={goalSheetVisible}
       />
       <EditProfileSheet
+        key={editProfileKey}
         initialBio={profile?.bio ?? ''}
         initialName={profile?.displayName || user?.name || ''}
         visible={editProfileVisible}

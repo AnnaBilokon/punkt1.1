@@ -55,20 +55,22 @@ const BookGridItem = memo(
           style={{ height: itemWidth * 1.5, width: itemWidth }}
         />
       </View>
-      <Text
-        className="mt-1.5 text-[11px] font-medium leading-[14px] text-black"
-        numberOfLines={2}
-        variant="body"
-      >
-        {book.title}
-      </Text>
-      <Text
-        className="text-[10px] text-[#9b9b9b]"
-        numberOfLines={1}
-        variant="body"
-      >
-        {book.author}
-      </Text>
+      <View style={{ height: 30, marginTop: 6, width: itemWidth, overflow: 'hidden' }}>
+        <Text
+          className="text-[11px] font-medium leading-[14px] text-black"
+          numberOfLines={1}
+          variant="body"
+        >
+          {book.title}
+        </Text>
+        <Text
+          className="text-[10px] text-[#9b9b9b]"
+          numberOfLines={1}
+          variant="body"
+        >
+          {book.author}
+        </Text>
+      </View>
     </Pressable>
   ),
 );
@@ -91,15 +93,17 @@ const AddBookTile = memo(
         }}
       >
         <View className="h-9 w-9 items-center justify-center rounded-full bg-[#ede9f7]">
-          <Ionicons color="#797DEA" name="add" size={22} />
+          <Ionicons color="#7851A9" name="add" size={22} />
         </View>
       </View>
-      <Text
-        className="mt-1.5 text-center text-[11px] text-[#9b9b9b]"
-        variant="body"
-      >
-        Add book
-      </Text>
+      <View style={{ height: 30, marginTop: 6, alignItems: 'center' }}>
+        <Text
+          className="text-[11px] text-[#9b9b9b]"
+          variant="body"
+        >
+          Add book
+        </Text>
+      </View>
     </Pressable>
   ),
 );
@@ -154,7 +158,7 @@ const RenameModal = memo(
                 disabled={!name.trim()}
                 onPress={() => onSave(name)}
                 style={{
-                  backgroundColor: '#7D5BA6',
+                  backgroundColor: '#7851A9',
                   opacity: !name.trim() ? 0.5 : 1,
                 }}
               >
@@ -182,6 +186,7 @@ export const CustomShelfScreen = memo(
     const renameShelf = useShelfStore((s) => s.renameShelf);
     const archiveShelf = useShelfStore((s) => s.archiveShelf);
     const unarchiveShelf = useShelfStore((s) => s.unarchiveShelf);
+    const setShelfPrivate = useShelfStore((s) => s.setShelfPrivate);
     const [addModalVisible, setAddModalVisible] = useState(false);
     const [renameVisible, setRenameVisible] = useState(false);
 
@@ -225,9 +230,16 @@ export const CustomShelfScreen = memo(
       ]);
     }, [router]);
 
-    const handleMenuPress = useCallback(() => {
+    const handleMenuPress = () => {
       Alert.alert(shelf.name, undefined, [
         { text: 'Rename', onPress: () => setRenameVisible(true) },
+        {
+          text: shelf.isPrivate ? 'Make public' : 'Make secret',
+          onPress: () => {
+            if (!user) return;
+            void setShelfPrivate(user.id, shelf.id, !shelf.isPrivate);
+          },
+        },
         shelf.isArchived
           ? {
               text: 'Unarchive',
@@ -293,16 +305,13 @@ export const CustomShelfScreen = memo(
         },
         { style: 'cancel', text: 'Cancel' },
       ]);
-    }, [shelf, deleteShelf, archiveShelf, unarchiveShelf, user, router]);
+    };
 
-    const handleRename = useCallback(
-      async (name: string) => {
-        if (!user || !name.trim()) return;
-        setRenameVisible(false);
-        await renameShelf(user.id, shelf.id, name.trim());
-      },
-      [user, shelf.id, renameShelf],
-    );
+    const handleRename = async (name: string) => {
+      if (!user || !name.trim()) return;
+      setRenameVisible(false);
+      await renameShelf(user.id, shelf.id, name.trim());
+    };
 
     const allItems: GridItem[] = [
       ...books.map((book): GridItem => ({ type: 'book', book })),
@@ -339,14 +348,20 @@ export const CustomShelfScreen = memo(
               >
                 {shelf.name}
               </Text>
-              {shelf.isArchived && (
-                <View className="flex-row items-center gap-1 self-start rounded-full bg-[#f0f0f0] px-2.5 py-0.5">
-                  <Ionicons color="#9b9b9b" name="archive-outline" size={11} />
-                  <Text className="text-[11px] text-[#9b9b9b]" variant="body">
-                    Archived
-                  </Text>
-                </View>
-              )}
+              <View className="flex-row flex-wrap gap-1.5">
+                {shelf.isArchived && (
+                  <View className="flex-row items-center gap-1 self-start rounded-full bg-[#f0f0f0] px-2.5 py-0.5">
+                    <Ionicons color="#9b9b9b" name="archive-outline" size={11} />
+                    <Text className="text-[11px] text-[#9b9b9b]" variant="body">Archived</Text>
+                  </View>
+                )}
+                {shelf.isPrivate && (
+                  <View className="flex-row items-center gap-1 self-start rounded-full bg-[#ede9f7] px-2.5 py-0.5">
+                    <Ionicons color="#7851A9" name="lock-closed-outline" size={11} />
+                    <Text className="text-[11px] font-medium text-[#7851A9]" variant="body">Secret</Text>
+                  </View>
+                )}
+              </View>
             </View>
             <View className="flex-row items-center gap-3">
               <Text className="mb-0.5 text-[13px] text-[#9b9b9b]" variant="body">
@@ -378,8 +393,9 @@ export const CustomShelfScreen = memo(
               <View
                 key={rowIdx}
                 style={{
+                  alignItems: 'flex-start',
                   flexDirection: 'row',
-                  gap: COLUMN_GAP,
+                  columnGap: COLUMN_GAP,
                   marginBottom: rowIdx < rows.length - 1 ? COLUMN_GAP : 0,
                 }}
               >

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -24,15 +24,15 @@ import {
 import { getChallengeProgress } from '@/entities/challenge';
 import { getInitials } from '@/entities/user';
 import { useNytBestsellers } from '@/features/discover/hooks/useNytBestsellers';
-import { useCustomShelves } from '@/features/library/hooks/useCustomShelves';
-import { useLiveChallenge } from '@/features/library/hooks/useLiveChallenge';
-import { useLibrarySections } from '@/features/library/hooks/useLibrarySections';
 import { WhatToReadNextCard } from '@/features/library/components/WhatToReadNextCard';
+import { useCustomShelves } from '@/features/library/hooks/useCustomShelves';
+import { useLibrarySections } from '@/features/library/hooks/useLibrarySections';
+import { useLiveChallenge } from '@/features/library/hooks/useLiveChallenge';
+import { useStreak } from '@/features/profile/hooks/useStreak';
 import { useAuthStore } from '@/store/authStore';
 import { useProfileStore } from '@/store/profileStore';
 import type { Book } from '@/types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const bookHref = (id: string, tab?: string) =>
   (tab ? `/book/${id}?tab=${tab}` : `/book/${id}`) as any;
 
@@ -64,7 +64,10 @@ StarRating.displayName = 'StarRating';
 
 const NowReadingCard = memo(
   ({ book, onPress }: { book: Book; onPress: () => void }) => {
-    const coverSource = useMemo(() => ({ uri: book.coverImage }), [book.coverImage]);
+    const coverSource = useMemo(
+      () => ({ uri: book.coverImage }),
+      [book.coverImage],
+    );
     return (
       <Card className="overflow-hidden rounded-[20px] border-[#e8e8e8] bg-[#f9f9f9] p-0">
         <View className="flex-row gap-4 p-4">
@@ -120,7 +123,10 @@ const ChallengeStrip = memo(({ onPress }: { onPress: () => void }) => {
             <Text className="text-[13px] text-[#6d6d6d]" variant="caption">
               {challenge.year} Reading Challenge
             </Text>
-            <Text className="text-[22px] font-semibold text-[#7851A9]" variant="body">
+            <Text
+              className="text-[22px] font-semibold text-[#7851A9]"
+              variant="body"
+            >
               {challenge.completed}/{challenge.goal} books
             </Text>
             <Text className="text-[13px] text-black" variant="caption">
@@ -147,9 +153,16 @@ ChallengeStrip.displayName = 'ChallengeStrip';
 export const HomeScreen = memo(() => {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
-  const { dnf = [], keepReading = [], wantToRead = [], finished = [], isFetching } = useLibrarySections();
+  const {
+    dnf = [],
+    keepReading = [],
+    wantToRead = [],
+    finished = [],
+    isFetching,
+  } = useLibrarySections();
   const { data: picks = [] } = useNytBestsellers();
   const { data: customShelves = [] } = useCustomShelves(user?.id ?? null);
+  const { data: streakData } = useStreak(user?.id ?? null);
   const widgets = useProfileStore((s) => s.homeWidgets);
   const { width: screenWidth } = useWindowDimensions();
   const firstName = user?.name?.split(' ')[0] ?? 'there';
@@ -158,179 +171,366 @@ export const HomeScreen = memo(() => {
   const CARD_GAP = 12;
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const renderWidget = useCallback(
-    (id: string) => {
-      switch (id) {
-        case 'currentlyReading':
-          return isFetching ? (
-            <ActivityIndicator key="cr-loading" color="#7851A9" />
-          ) : keepReading.length > 0 ? (
-            <View key="currentlyReading" className="gap-3">
-              <Text className="text-[17px] font-semibold text-black" variant="body">
-                Now Reading
-              </Text>
-              <ScrollView
-                className="-mx-5"
-                contentContainerStyle={{ gap: CARD_GAP, paddingHorizontal: 20 }}
-                decelerationRate="fast"
-                horizontal
-                onMomentumScrollEnd={(e) => {
-                  setActiveIndex(
-                    Math.round(e.nativeEvent.contentOffset.x / (CARD_WIDTH + CARD_GAP)),
-                  );
-                }}
-                showsHorizontalScrollIndicator={false}
-                snapToInterval={CARD_WIDTH + CARD_GAP}
-              >
-                {keepReading.map((book) => (
-                  <View key={book.id} style={{ width: CARD_WIDTH }}>
-                    <NowReadingCard
-                      book={book}
-                      onPress={() => router.push(bookHref(book.id, 'my-reading'))}
-                    />
-                  </View>
-                ))}
-              </ScrollView>
-              {keepReading.length > 1 && (
-                <View className="flex-row justify-center gap-1.5">
-                  {keepReading.map((_, i) => (
-                    <View
-                      key={i}
-                      className="rounded-full"
-                      style={{
-                        backgroundColor: i === activeIndex ? '#7851A9' : '#d9d9d9',
-                        height: 6,
-                        width: i === activeIndex ? 16 : 6,
-                      }}
-                    />
-                  ))}
+  const renderWidget = (id: string) => {
+    switch (id) {
+      case 'currentlyReading':
+        return isFetching ? (
+          <ActivityIndicator key="cr-loading" color="#7851A9" />
+        ) : keepReading.length > 0 ? (
+          <View key="currentlyReading" className="gap-3">
+            <Text
+              className="text-[17px] font-semibold text-black"
+              variant="body"
+            >
+              Now Reading
+            </Text>
+            <ScrollView
+              className="-mx-5"
+              contentContainerStyle={{ gap: CARD_GAP, paddingHorizontal: 20 }}
+              decelerationRate="fast"
+              horizontal
+              onMomentumScrollEnd={(e) => {
+                setActiveIndex(
+                  Math.round(
+                    e.nativeEvent.contentOffset.x / (CARD_WIDTH + CARD_GAP),
+                  ),
+                );
+              }}
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={CARD_WIDTH + CARD_GAP}
+            >
+              {keepReading.map((book) => (
+                <View key={book.id} style={{ width: CARD_WIDTH }}>
+                  <NowReadingCard
+                    book={book}
+                    onPress={() => router.push(bookHref(book.id, 'my-reading'))}
+                  />
                 </View>
-              )}
-            </View>
-          ) : (
-            <Card key="cr-empty" className="items-center gap-3 rounded-[20px] border-[#e8e8e8] bg-[#f9f9f9] py-8">
-              <Ionicons color="#c0c0c0" name="book-outline" size={40} />
-              <Text className="text-center text-[15px] text-[#9b9b9b]" variant="body">
-                No books in progress.{'\n'}Head to Discover to find your next read.
-              </Text>
-            </Card>
-          );
-
-        case 'whatToReadNext':
-          return (
-            <WhatToReadNextCard
-              key="whatToReadNext"
-              customShelves={customShelves}
-              wantToRead={wantToRead}
-            />
-          );
-
-        case 'tbrShelf':
-          return wantToRead.length > 0 ? (
-            <View key="tbrShelf" className="gap-3">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center gap-2">
-                  <Text className="text-[17px] font-semibold text-black" variant="body">TBR</Text>
-                  <View style={{ backgroundColor: '#ede9f7', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 }}>
-                    <Text className="text-[12px] font-semibold text-[#7851A9]" variant="caption">{wantToRead.length}</Text>
-                  </View>
-                </View>
-                <Pressable onPress={() => router.push('/shelf/want-to-read' as any)} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
-                  <Text className="text-[13px] text-[#7851A9]" variant="body">See all</Text>
-                </Pressable>
-              </View>
-              <ScrollView className="-mx-5" contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }} horizontal showsHorizontalScrollIndicator={false}>
-                {wantToRead.slice(0, 12).map((book) => (
-                  <BookCard key={book.id} book={book} onPress={() => router.push(bookHref(book.id))} variant="compact" />
-                ))}
-              </ScrollView>
-            </View>
-          ) : null;
-
-        case 'finished':
-          return finished.length > 0 ? (
-            <View key="finished" className="gap-3">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center gap-2">
-                  <Text className="text-[17px] font-semibold text-black" variant="body">Finished</Text>
-                  <View style={{ backgroundColor: '#ede9f7', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 }}>
-                    <Text className="text-[12px] font-semibold text-[#7851A9]" variant="caption">{finished.length}</Text>
-                  </View>
-                </View>
-                <Pressable onPress={() => router.push('/shelf/completed' as any)} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
-                  <Text className="text-[13px] text-[#7851A9]" variant="body">See all</Text>
-                </Pressable>
-              </View>
-              <ScrollView className="-mx-5" contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }} horizontal showsHorizontalScrollIndicator={false}>
-                {finished.slice(0, 12).map((book) => (
-                  <BookCard key={book.id} book={book} onPress={() => router.push(bookHref(book.id))} variant="compact" />
-                ))}
-              </ScrollView>
-            </View>
-          ) : null;
-
-        case 'dnfShelf':
-          return dnf.length > 0 ? (
-            <View key="dnfShelf" className="gap-3">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center gap-2">
-                  <Text className="text-[17px] font-semibold text-black" variant="body">Did Not Finish</Text>
-                  <View style={{ backgroundColor: '#fdecea', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 }}>
-                    <Text className="text-[12px] font-semibold text-[#c0392b]" variant="caption">{dnf.length}</Text>
-                  </View>
-                </View>
-                <Pressable onPress={() => router.push('/shelf/dnf' as any)} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
-                  <Text className="text-[13px] text-[#7851A9]" variant="body">See all</Text>
-                </Pressable>
-              </View>
-              <ScrollView className="-mx-5" contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }} horizontal showsHorizontalScrollIndicator={false}>
-                {dnf.slice(0, 12).map((book) => (
-                  <BookCard key={book.id} book={book} onPress={() => router.push(bookHref(book.id))} variant="compact" />
-                ))}
-              </ScrollView>
-            </View>
-          ) : null;
-
-        case 'readingChallenge':
-          return <ChallengeStrip key="readingChallenge" onPress={() => router.push('/challenge' as any)} />;
-
-        case 'customShelves':
-          return customShelves.length > 0 ? (
-            <View key="customShelves" className="gap-3">
-              <View className="flex-row items-center justify-between">
-                <Text className="text-[17px] font-semibold text-black" variant="body">My Shelves</Text>
-                <Pressable onPress={() => router.push('/(tabs)/library' as any)} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
-                  <Text className="text-[13px] text-[#7851A9]" variant="body">See all</Text>
-                </Pressable>
-              </View>
-              {customShelves.slice(0, 4).map((shelf) => (
-                <Pressable key={shelf.id} onPress={() => router.push(`/custom-shelf/${shelf.id}` as any)} style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-                  <Card className="flex-row items-center rounded-[17px] border-[#d9d9d9] bg-[#f9f9f9] px-5 py-4">
-                    <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-[#ede9f7]">
-                      <Ionicons color="#7851A9" name="bookmark-outline" size={16} />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-[15px] font-medium text-black" variant="body">{shelf.name}</Text>
-                      <Text className="text-[12px] text-[#9b9b9b]" variant="body">{shelf.bookCount} book{shelf.bookCount !== 1 ? 's' : ''}</Text>
-                    </View>
-                    <Ionicons color="#c0c0c0" name="chevron-forward" size={16} />
-                  </Card>
-                </Pressable>
               ))}
-            </View>
-          ) : null;
+            </ScrollView>
+            {keepReading.length > 1 && (
+              <View className="flex-row justify-center gap-1.5">
+                {keepReading.map((_, i) => (
+                  <View
+                    key={i}
+                    className="rounded-full"
+                    style={{
+                      backgroundColor:
+                        i === activeIndex ? '#7851A9' : '#d9d9d9',
+                      height: 6,
+                      width: i === activeIndex ? 16 : 6,
+                    }}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
+        ) : (
+          <Card
+            key="cr-empty"
+            className="items-center gap-3 rounded-[20px] border-[#e8e8e8] bg-[#f9f9f9] py-8"
+          >
+            <Ionicons color="#c0c0c0" name="book-outline" size={40} />
+            <Text
+              className="text-center text-[15px] text-[#9b9b9b]"
+              variant="body"
+            >
+              No books in progress.{'\n'}Head to Discover to find your next
+              read.
+            </Text>
+          </Card>
+        );
 
-        default:
-          return null;
+      case 'whatToReadNext':
+        return (
+          <WhatToReadNextCard
+            key="whatToReadNext"
+            customShelves={customShelves}
+            wantToRead={wantToRead}
+          />
+        );
+
+      case 'tbrShelf':
+        return wantToRead.length > 0 ? (
+          <View key="tbrShelf" className="gap-3">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-2">
+                <Text
+                  className="text-[17px] font-semibold text-black"
+                  variant="body"
+                >
+                  TBR
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: '#ede9f7',
+                    borderRadius: 20,
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                  }}
+                >
+                  <Text
+                    className="text-[12px] font-semibold text-[#7851A9]"
+                    variant="caption"
+                  >
+                    {wantToRead.length}
+                  </Text>
+                </View>
+              </View>
+              <Pressable
+                onPress={() => router.push('/shelf/want-to-read' as any)}
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+              >
+                <Text className="text-[13px] text-[#7851A9]" variant="body">
+                  See all
+                </Text>
+              </Pressable>
+            </View>
+            <ScrollView
+              className="-mx-5"
+              contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+            >
+              {wantToRead.slice(0, 12).map((book) => (
+                <BookCard
+                  key={book.id}
+                  book={book}
+                  onPress={() => router.push(bookHref(book.id))}
+                  variant="compact"
+                />
+              ))}
+            </ScrollView>
+          </View>
+        ) : null;
+
+      case 'finished':
+        return finished.length > 0 ? (
+          <View key="finished" className="gap-3">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-2">
+                <Text
+                  className="text-[17px] font-semibold text-black"
+                  variant="body"
+                >
+                  Finished
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: '#ede9f7',
+                    borderRadius: 20,
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                  }}
+                >
+                  <Text
+                    className="text-[12px] font-semibold text-[#7851A9]"
+                    variant="caption"
+                  >
+                    {finished.length}
+                  </Text>
+                </View>
+              </View>
+              <Pressable
+                onPress={() => router.push('/shelf/completed' as any)}
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+              >
+                <Text className="text-[13px] text-[#7851A9]" variant="body">
+                  See all
+                </Text>
+              </Pressable>
+            </View>
+            <ScrollView
+              className="-mx-5"
+              contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+            >
+              {finished.slice(0, 12).map((book) => (
+                <BookCard
+                  key={book.id}
+                  book={book}
+                  onPress={() => router.push(bookHref(book.id))}
+                  variant="compact"
+                />
+              ))}
+            </ScrollView>
+          </View>
+        ) : null;
+
+      case 'dnfShelf':
+        return dnf.length > 0 ? (
+          <View key="dnfShelf" className="gap-3">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-2">
+                <Text
+                  className="text-[17px] font-semibold text-black"
+                  variant="body"
+                >
+                  Did Not Finish
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: '#fdecea',
+                    borderRadius: 20,
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                  }}
+                >
+                  <Text
+                    className="text-[12px] font-semibold text-[#c0392b]"
+                    variant="caption"
+                  >
+                    {dnf.length}
+                  </Text>
+                </View>
+              </View>
+              <Pressable
+                onPress={() => router.push('/shelf/dnf' as any)}
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+              >
+                <Text className="text-[13px] text-[#7851A9]" variant="body">
+                  See all
+                </Text>
+              </Pressable>
+            </View>
+            <ScrollView
+              className="-mx-5"
+              contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+            >
+              {dnf.slice(0, 12).map((book) => (
+                <BookCard
+                  key={book.id}
+                  book={book}
+                  onPress={() => router.push(bookHref(book.id))}
+                  variant="compact"
+                />
+              ))}
+            </ScrollView>
+          </View>
+        ) : null;
+
+      case 'readingChallenge':
+        return (
+          <ChallengeStrip
+            key="readingChallenge"
+            onPress={() => router.push('/challenge' as any)}
+          />
+        );
+
+      case 'streak': {
+        const current = streakData?.current ?? 0;
+        const best = streakData?.best ?? 0;
+        return (
+          <TouchableOpacity
+            key="streak"
+            activeOpacity={0.85}
+            onPress={() => router.push('/challenge' as any)}
+          >
+            <Card className="rounded-[17px] border-[#d9d9d9] bg-[#f9f9f9] px-5 py-4">
+              <View className="flex-row items-center justify-between">
+                <View className="gap-1">
+                  <Text
+                    className="text-[13px] text-[#6d6d6d]"
+                    variant="caption"
+                  >
+                    Reading Streak
+                  </Text>
+                  <View className="flex-row items-end gap-1.5">
+                    <Text
+                      className="text-[28px] font-semibold text-[#7851A9]"
+                      variant="body"
+                    >
+                      {current}
+                    </Text>
+                    <Text
+                      className="pb-0.5 text-[14px] text-[#9b9b9b]"
+                      variant="caption"
+                    >
+                      {current === 1 ? 'day' : 'days'}
+                    </Text>
+                  </View>
+                  {best > 0 && (
+                    <Text
+                      className="text-[12px] text-[#9b9b9b]"
+                      variant="caption"
+                    >
+                      Best: {best} {best === 1 ? 'day' : 'days'}
+                    </Text>
+                  )}
+                </View>
+                <View className="h-14 w-14 items-center justify-center rounded-full bg-[#ede9f7]">
+                  <Text className="text-[28px]" variant="body">
+                    🔥
+                  </Text>
+                </View>
+              </View>
+            </Card>
+          </TouchableOpacity>
+        );
       }
-    },
-    [router, keepReading, wantToRead, finished, dnf, customShelves, isFetching, activeIndex, CARD_WIDTH, CARD_GAP],
-  );
+
+      case 'customShelves':
+        return customShelves.length > 0 ? (
+          <View key="customShelves" className="gap-3">
+            <View className="flex-row items-center justify-between">
+              <Text
+                className="text-[17px] font-semibold text-black"
+                variant="body"
+              >
+                My Shelves
+              </Text>
+              <Pressable
+                onPress={() => router.push('/(tabs)/library' as any)}
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+              >
+                <Text className="text-[13px] text-[#7851A9]" variant="body">
+                  See all
+                </Text>
+              </Pressable>
+            </View>
+            {customShelves.slice(0, 4).map((shelf) => (
+              <Pressable
+                key={shelf.id}
+                onPress={() => router.push(`/custom-shelf/${shelf.id}` as any)}
+                style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+              >
+                <Card className="flex-row items-center rounded-[17px] border-[#d9d9d9] bg-[#f9f9f9] px-5 py-4">
+                  <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-[#ede9f7]">
+                    <Ionicons
+                      color="#7851A9"
+                      name="bookmark-outline"
+                      size={16}
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text
+                      className="text-[15px] font-medium text-black"
+                      variant="body"
+                    >
+                      {shelf.name}
+                    </Text>
+                    <Text className="text-[12px] text-[#9b9b9b]" variant="body">
+                      {shelf.bookCount} book{shelf.bookCount !== 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                  <Ionicons color="#c0c0c0" name="chevron-forward" size={16} />
+                </Card>
+              </Pressable>
+            ))}
+          </View>
+        ) : null;
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <Screen className="bg-[#fdfdfd]" contentClassName="gap-6 pt-2" scrollable>
       <Container className="gap-6 pb-6">
-
         {/* Header */}
         <View className="flex-row items-center justify-between">
           <Ionicons color="#6d6d6d" name="notifications-outline" size={28} />
@@ -342,7 +542,10 @@ export const HomeScreen = memo(() => {
           <Text className="text-[14px] text-[#6d6d6d]" variant="caption">
             {getGreeting()},
           </Text>
-          <Text className="text-[30px] font-semibold text-black" variant="display">
+          <Text
+            className="text-[30px] font-semibold text-black"
+            variant="display"
+          >
             {firstName} 👋
           </Text>
         </View>
@@ -353,7 +556,10 @@ export const HomeScreen = memo(() => {
         {/* Picks for you — always shown, not reorderable */}
         {picks.length > 0 && (
           <View className="gap-3">
-            <Text className="text-[17px] font-semibold text-black" variant="body">
+            <Text
+              className="text-[17px] font-semibold text-black"
+              variant="body"
+            >
               Picks for you
             </Text>
             <ScrollView
@@ -363,12 +569,16 @@ export const HomeScreen = memo(() => {
               showsHorizontalScrollIndicator={false}
             >
               {picks.slice(0, 10).map((book) => (
-                <BookCard key={book.id} book={book} onPress={() => router.push(bookHref(book.id))} variant="compact" />
+                <BookCard
+                  key={book.id}
+                  book={book}
+                  onPress={() => router.push(bookHref(book.id))}
+                  variant="compact"
+                />
               ))}
             </ScrollView>
           </View>
         )}
-
       </Container>
     </Screen>
   );

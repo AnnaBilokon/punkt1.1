@@ -29,7 +29,7 @@ const mapNytBook = (nytBook: NytBook): Book => ({
   progress: 0,
   publishedYear: new Date().getFullYear(),
   rating: 0,
-  status: 'want-to-read',
+  status: null,
   title: nytBook.title,
 });
 

@@ -69,7 +69,7 @@ export function AppDialog({
                       ? 'font-semibold text-[#e53935]'
                       : btn.type === 'cancel'
                         ? 'font-normal text-[#6d7a88]'
-                        : 'font-semibold text-[#7D5BA6]'
+                        : 'font-semibold text-[#7851A9]'
                   }`}
                 >
                   {btn.label}

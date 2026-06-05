@@ -14,7 +14,7 @@ type Genre = {
 };
 
 const GENRES: Genre[] = [
-  { color: '#7D5BA6', icon: 'book-outline', id: 'fiction', label: 'Fiction' },
+  { color: '#7851A9', icon: 'book-outline', id: 'fiction', label: 'Fiction' },
   {
     color: '#3D7EAA',
     icon: 'newspaper-outline',

@@ -18,10 +18,11 @@ export const bookShelfIdsQueryKey = (bookApiId: string, userId: string) =>
 type ShelfState = {
   addBookToShelf: (shelfId: string, bookApiId: string, userId: string) => Promise<void>;
   archiveShelf: (userId: string, shelfId: string) => Promise<void>;
-  createShelf: (userId: string, name: string) => Promise<void>;
+  createShelf: (userId: string, name: string, isPrivate?: boolean) => Promise<void>;
   deleteShelf: (userId: string, shelfId: string) => Promise<void>;
   removeBookFromShelf: (shelfId: string, bookApiId: string, userId: string) => Promise<void>;
   renameShelf: (userId: string, shelfId: string, name: string) => Promise<void>;
+  setShelfPrivate: (userId: string, shelfId: string, isPrivate: boolean) => Promise<void>;
   unarchiveShelf: (userId: string, shelfId: string) => Promise<void>;
 };
 
@@ -39,9 +40,15 @@ export const useShelfStore = create<ShelfState>()(() => ({
     void queryClient.invalidateQueries({ queryKey: archivedShelvesQueryKey(userId) });
   },
 
-  createShelf: async (userId, name) => {
-    await shelfService.createShelf(userId, name);
+  createShelf: async (userId, name, isPrivate = false) => {
+    await shelfService.createShelf(userId, name, isPrivate);
     void queryClient.invalidateQueries({ queryKey: customShelvesQueryKey(userId) });
+  },
+
+  setShelfPrivate: async (userId, shelfId, isPrivate) => {
+    await shelfService.setPrivate(shelfId, isPrivate);
+    void queryClient.invalidateQueries({ queryKey: customShelvesQueryKey(userId) });
+    void queryClient.invalidateQueries({ queryKey: archivedShelvesQueryKey(userId) });
   },
 
   deleteShelf: async (userId, shelfId) => {

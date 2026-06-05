@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 
 import { userBooksQueryKey } from '@/features/library/hooks/useUserBooks';
+import { streakQueryKey } from '@/features/profile/hooks/useStreak';
 import { bookRepository } from '@/services/books/bookRepository';
+import { streakService } from '@/services/profile/streakService';
 import { queryClient } from '@/shared/lib/queryClient';
 import { bookShelfIdsQueryKey, customShelvesQueryKey } from '@/store/shelfStore';
 import type { Book, BookStatus, ReadingDataUpdate } from '@/types';
@@ -26,6 +28,9 @@ export const useBookStore = create<BookState>()(() => ({
   addBook: async (userId, book, status) => {
     await bookRepository.addBook(userId, book, status);
     void queryClient.invalidateQueries({ queryKey: userBooksQueryKey(userId) });
+    void streakService.logActivity(userId).then(() =>
+      queryClient.invalidateQueries({ queryKey: streakQueryKey(userId) }),
+    );
   },
 
   removeBook: async (userId, bookApiId) => {
@@ -39,6 +44,9 @@ export const useBookStore = create<BookState>()(() => ({
   saveReadingData: async (userId, bookApiId, updates) => {
     await bookRepository.saveReadingData(userId, bookApiId, updates);
     void queryClient.invalidateQueries({ queryKey: userBooksQueryKey(userId) });
+    void streakService.logActivity(userId).then(() =>
+      queryClient.invalidateQueries({ queryKey: streakQueryKey(userId) }),
+    );
   },
 
   updateBookMeta: async (userId, bookApiId, book) => {
@@ -49,5 +57,8 @@ export const useBookStore = create<BookState>()(() => ({
   updateBookStatus: async (userId, bookApiId, status) => {
     await bookRepository.updateBook(userId, bookApiId, { status });
     void queryClient.invalidateQueries({ queryKey: userBooksQueryKey(userId) });
+    void streakService.logActivity(userId).then(() =>
+      queryClient.invalidateQueries({ queryKey: streakQueryKey(userId) }),
+    );
   },
 }));

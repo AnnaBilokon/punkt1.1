@@ -15,6 +15,7 @@ type Props = {
   book?: Book;
   bookApiId: string | null;
   onClose: () => void;
+  onSaved?: () => void;
   visible: boolean;
 };
 
@@ -22,9 +23,10 @@ const DEFAULT_SHELVES: { label: string; status: BookStatus }[] = [
   { label: 'TBR', status: 'want-to-read' },
   { label: 'Currently Reading', status: 'reading' },
   { label: 'Finished', status: 'completed' },
+  { label: 'Did Not Finish', status: 'dnf' },
 ];
 
-export const AddToShelfModal = memo(({ book, bookApiId, onClose, visible }: Props) => {
+export const AddToShelfModal = memo(({ book, bookApiId, onClose, onSaved, visible }: Props) => {
   const userId = useAuthStore((s) => s.user?.id ?? null);
   const { data: shelves = [] } = useCustomShelves(userId);
   const { data: currentShelfIds = [] } = useBookShelfIds(bookApiId, userId);
@@ -90,6 +92,7 @@ export const AddToShelfModal = memo(({ book, bookApiId, onClose, visible }: Prop
       ops.push(...toRemove.map((s) => removeBookFromShelf(s.id, bookApiId, userId)));
 
       await Promise.all(ops);
+      onSaved?.();
       onClose();
     } catch (e) {
       Alert.alert('Error', e instanceof Error ? e.message : 'Could not save. Please try again.');
@@ -133,8 +136,8 @@ export const AddToShelfModal = memo(({ book, bookApiId, onClose, visible }: Prop
                   <View
                     className="h-6 w-6 items-center justify-center rounded-[6px]"
                     style={{
-                      backgroundColor: isChecked ? '#7D5BA6' : '#f0f0f0',
-                      borderColor: isChecked ? '#7D5BA6' : '#d0d0d0',
+                      backgroundColor: isChecked ? '#7851A9' : '#f0f0f0',
+                      borderColor: isChecked ? '#7851A9' : '#d0d0d0',
                       borderWidth: 1.5,
                     }}
                   >
@@ -174,8 +177,8 @@ export const AddToShelfModal = memo(({ book, bookApiId, onClose, visible }: Prop
                     <View
                       className="h-6 w-6 items-center justify-center rounded-[6px]"
                       style={{
-                        backgroundColor: isChecked ? '#7D5BA6' : '#f0f0f0',
-                        borderColor: isChecked ? '#7D5BA6' : '#d0d0d0',
+                        backgroundColor: isChecked ? '#7851A9' : '#f0f0f0',
+                        borderColor: isChecked ? '#7851A9' : '#d0d0d0',
                         borderWidth: 1.5,
                       }}
                     >
@@ -199,7 +202,7 @@ export const AddToShelfModal = memo(({ book, bookApiId, onClose, visible }: Prop
             className="mt-4 items-center justify-center rounded-[12px] py-3.5"
             disabled={saving}
             onPress={() => void handleSave()}
-            style={{ backgroundColor: '#7D5BA6', opacity: saving ? 0.6 : 1 }}
+            style={{ backgroundColor: '#7851A9', opacity: saving ? 0.6 : 1 }}
           >
             {saving ? (
               <ActivityIndicator color="#fff" size="small" />

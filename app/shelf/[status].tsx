@@ -4,18 +4,18 @@ import { useState } from 'react';
 import { AddToShelfModal } from '@/features/library/components/AddToShelfModal';
 import { useLibrarySections } from '@/features/library/hooks/useLibrarySections';
 import { ShelfScreen } from '@/features/library/screens/ShelfScreen';
+import { TBRScreen } from '@/features/library/screens/TBRScreen';
 
 export default function ShelfRoute() {
   const { status } = useLocalSearchParams<{ status: string }>();
   const { keepReading, wantToRead, finished } = useLibrarySections();
   const [addToShelfBookId, setAddToShelfBookId] = useState<string | null>(null);
 
-  const books =
-    status === 'reading'
-      ? keepReading
-      : status === 'want-to-read'
-        ? wantToRead
-        : finished;
+  if (status === 'want-to-read') {
+    return <TBRScreen books={wantToRead} />;
+  }
+
+  const books = status === 'reading' ? keepReading : finished;
 
   return (
     <>

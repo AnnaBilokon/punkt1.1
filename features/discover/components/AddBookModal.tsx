@@ -223,7 +223,7 @@ export const AddBookModal = ({
           [
             { style: 'cancel', text: 'Not now' },
             {
-              text: 'Want to Read',
+              text: 'TBR',
               onPress: () => onBookSaved(book, 'want-to-read'),
             },
             {
@@ -308,9 +308,9 @@ export const AddBookModal = ({
                 >
                   {coverLocalUri ? (
                     <Image
-                      className="h-11 w-8 rounded-[4px]"
                       resizeMode="cover"
-                      source={{ uri: coverLocalUri }}
+                      source={{ uri: form.coverImage || coverLocalUri || '' }}
+                      style={{ borderRadius: 4, height: 44, width: 32 }}
                     />
                   ) : (
                     <View className="h-11 w-8 items-center justify-center rounded-[4px] bg-[#ede7f6]">

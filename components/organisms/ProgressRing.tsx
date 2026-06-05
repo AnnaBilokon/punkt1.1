@@ -1,5 +1,5 @@
 import { memo, useEffect } from 'react';
-import { View } from 'react-native';
+import { Text as RNText, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedProps,
@@ -36,6 +36,7 @@ export const ProgressRing = memo(
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
     const normalizedProgress = Math.max(0, Math.min(100, progress));
+    const fontSize = Math.round((size - strokeWidth * 2) * 0.38);
     const progressValue = useSharedValue(0);
 
     useEffect(() => {
@@ -76,16 +77,27 @@ export const ProgressRing = memo(
             originY={size / 2}
           />
         </Svg>
-        <View className="absolute items-center gap-0.5">
-          <Text
-            className={`text-[28px] font-semibold ${textClassName}`}
-            variant="title"
+        <View
+          className="absolute items-center justify-center gap-0.5"
+          style={{ width: size, height: size }}
+        >
+          <RNText
+            adjustsFontSizeToFit
+            numberOfLines={1}
+            className={textClassName}
+            style={{
+              fontSize,
+              fontWeight: '600',
+              maxWidth: size - strokeWidth * 2 - 4,
+            }}
           >
             {normalizedProgress}%
-          </Text>
+          </RNText>
           {label ? (
             <Text
+              numberOfLines={2}
               className="text-center text-[11px] text-textMuted dark:text-textMutedDark"
+              style={{ maxWidth: size - strokeWidth * 2 - 4 }}
               variant="caption"
             >
               {label}
