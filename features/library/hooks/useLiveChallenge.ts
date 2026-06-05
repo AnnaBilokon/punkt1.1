@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 
 import { useLibrarySections } from '@/features/library/hooks/useLibrarySections';
 import { useStreak } from '@/features/profile/hooks/useStreak';
-import { useChallengeStore } from '@/store/challengeStore';
 import { useAuthStore } from '@/store/authStore';
+import { useChallengeStore } from '@/store/challengeStore';
 import type { Book } from '@/types';
 
 export const useLiveChallenge = () => {

@@ -1,5 +1,5 @@
 import { memo, useEffect } from 'react';
-import { View } from 'react-native';
+import { Text as RNText, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedProps,
@@ -7,8 +7,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
-
-import { Text as RNText } from 'react-native';
 
 import { Text } from '@/components/atoms/Text';
 import { motion } from '@/shared/lib/animations';
@@ -87,7 +85,11 @@ export const ProgressRing = memo(
             adjustsFontSizeToFit
             numberOfLines={1}
             className={textClassName}
-            style={{ fontSize, fontWeight: '600', maxWidth: size - strokeWidth * 2 - 4 }}
+            style={{
+              fontSize,
+              fontWeight: '600',
+              maxWidth: size - strokeWidth * 2 - 4,
+            }}
           >
             {normalizedProgress}%
           </RNText>
