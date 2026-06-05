@@ -2,7 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Image, Pressable, ScrollView, View } from 'react-native';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
 import type { SharedValue } from 'react-native-reanimated';
 import Animated, {
   runOnJS,
@@ -22,22 +26,22 @@ const ITEM_HEIGHT = 72;
 const BRAND = '#7851A9';
 
 const HERO_MESSAGES = [
-  "This book has been waiting since your last impulse buy at midnight.",
-  "No new purchases until this one is done. (*not legally binding)",
+  'This book has been waiting since your last impulse buy at midnight.',
+  'No new purchases until this one is done. (*not legally binding)',
   "Your TBR pile elected this as their spokesperson. Don't let them down.",
-  "Put Bookshop.org down. Just this once. You can do it.",
-  "Reading this is cheaper than therapy. And you already own it.",
-  "Your reading chair has been reserved. Snacks optional but encouraged.",
-  "This book forgives you for the 47 others you added first. Probably.",
+  'Put Bookshop.org down. Just this once. You can do it.',
+  'Reading this is cheaper than therapy. And you already own it.',
+  'Your reading chair has been reserved. Snacks optional but encouraged.',
+  'This book forgives you for the 47 others you added first. Probably.',
 ];
 
 const getPileQuip = (n: number): string => {
   if (n === 1) return "One book. No excuses. You've got this.";
-  if (n <= 4) return "A focused stack. Suspicious, but we respect it.";
+  if (n <= 4) return 'A focused stack. Suspicious, but we respect it.';
   if (n <= 8) return "Healthy ambition. You'll definitely get to all of these.";
-  if (n <= 15) return "A majestic pile. Your future self has big plans.";
-  if (n <= 30) return "Bold. Have you considered a reading sabbatical?";
-  return "You have a problem. A beautiful, book-scented problem. 📚";
+  if (n <= 15) return 'A majestic pile. Your future self has big plans.';
+  if (n <= 30) return 'Bold. Have you considered a reading sabbatical?';
+  return 'You have a problem. A beautiful, book-scented problem. 📚';
 };
 
 const getHeroMessage = (book: Book): string => {
@@ -47,49 +51,64 @@ const getHeroMessage = (book: Book): string => {
 
 // ─── Hero card ─────────────────────────────────────────────────────────────────
 
-const HeroCard = memo(({ book, onStartReading }: { book: Book; onStartReading: () => void }) => (
-  <View
-    style={{
-      backgroundColor: '#f0ecfa',
-      borderColor: '#ddd4f0',
-      borderRadius: 20,
-      borderWidth: 1,
-      gap: 12,
-      padding: 16,
-    }}
-  >
-    <View style={{ alignItems: 'center', flexDirection: 'row', gap: 6 }}>
-      <Text style={{ fontSize: 14 }} variant="body">⚡</Text>
-      <Text className="text-[11px] font-semibold uppercase tracking-widest text-[#7851A9]" variant="caption">
-        Up next
-      </Text>
-    </View>
-
-    <View style={{ alignItems: 'flex-start', flexDirection: 'row', gap: 14 }}>
-      <Image
-        style={{ backgroundColor: '#e0e0e0', borderRadius: 12, height: 120, width: 80 }}
-        source={{ uri: book.coverImage }}
-      />
-      <View style={{ flex: 1, gap: 4 }}>
+const HeroCard = memo(
+  ({ book, onStartReading }: { book: Book; onStartReading: () => void }) => (
+    <View
+      style={{
+        backgroundColor: '#f0ecfa',
+        borderColor: '#ddd4f0',
+        borderRadius: 20,
+        borderWidth: 1,
+        gap: 12,
+        padding: 16,
+      }}
+    >
+      <View style={{ alignItems: 'center', flexDirection: 'row', gap: 6 }}>
+        <Text style={{ fontSize: 14 }} variant="body">
+          ⚡
+        </Text>
         <Text
-          className="text-[16px] font-semibold leading-[22px] text-black"
-          numberOfLines={3}
-          variant="body"
+          className="text-[11px] font-semibold uppercase tracking-widest text-[#7851A9]"
+          variant="caption"
         >
-          {book.title}
-        </Text>
-        <Text className="text-[13px] text-[#6d6d6d]" variant="caption">
-          {book.author}
-        </Text>
-        <Text className="mt-2 text-[12px] italic text-[#9b9b9b]" variant="caption">
-          {getHeroMessage(book)}
+          Up next
         </Text>
       </View>
-    </View>
 
-    <Button label="Start reading →" onPress={onStartReading} />
-  </View>
-));
+      <View style={{ alignItems: 'flex-start', flexDirection: 'row', gap: 14 }}>
+        <Image
+          style={{
+            backgroundColor: '#e0e0e0',
+            borderRadius: 12,
+            height: 120,
+            width: 80,
+          }}
+          source={{ uri: book.coverImage }}
+        />
+        <View style={{ flex: 1, gap: 4 }}>
+          <Text
+            className="text-[16px] font-semibold leading-[22px] text-black"
+            numberOfLines={3}
+            variant="body"
+          >
+            {book.title}
+          </Text>
+          <Text className="text-[13px] text-[#6d6d6d]" variant="caption">
+            {book.author}
+          </Text>
+          <Text
+            className="mt-2 text-[12px] italic text-[#9b9b9b]"
+            variant="caption"
+          >
+            {getHeroMessage(book)}
+          </Text>
+        </View>
+      </View>
+
+      <Button label="Start reading →" onPress={onStartReading} />
+    </View>
+  ),
+);
 HeroCard.displayName = 'HeroCard';
 
 // ─── Drag row ──────────────────────────────────────────────────────────────────
@@ -221,7 +240,12 @@ const TBRRow = memo(
 
         {/* Cover */}
         <Image
-          style={{ backgroundColor: '#e0e0e0', borderRadius: 6, height: 52, width: 36 }}
+          style={{
+            backgroundColor: '#e0e0e0',
+            borderRadius: 6,
+            height: 52,
+            width: 36,
+          }}
           source={{ uri: book.coverImage }}
         />
 
@@ -234,7 +258,11 @@ const TBRRow = memo(
           >
             {book.title}
           </Text>
-          <Text className="text-[11px] text-[#9b9b9b]" numberOfLines={1} variant="caption">
+          <Text
+            className="text-[11px] text-[#9b9b9b]"
+            numberOfLines={1}
+            variant="caption"
+          >
             {book.author}
           </Text>
         </View>
@@ -271,19 +299,17 @@ export const TBRScreen = memo(({ books }: { books: Book[] }) => {
     });
   }, [books, tbrOrder]);
 
+  const [prevSortedBooks, setPrevSortedBooks] = useState(sortedBooks);
   const [items, setItems] = useState(sortedBooks);
+  if (sortedBooks !== prevSortedBooks) {
+    setPrevSortedBooks(sortedBooks);
+    if (items.length === 0) setItems(sortedBooks);
+  }
+
   const itemsRef = useRef(items);
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
-
-  const initialized = useRef(false);
-  useEffect(() => {
-    if (!initialized.current && sortedBooks.length > 0) {
-      setItems(sortedBooks);
-      initialized.current = true;
-    }
-  }, [sortedBooks]);
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollRef = useRef<ScrollView>(null);
@@ -337,7 +363,11 @@ export const TBRScreen = memo(({ books }: { books: Book[] }) => {
       <SafeAreaView className="flex-1 bg-[#fdfdfd]" edges={['top']}>
         <ScrollView
           ref={scrollRef}
-          contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 20, paddingTop: 8 }}
+          contentContainerStyle={{
+            paddingBottom: 100,
+            paddingHorizontal: 20,
+            paddingTop: 8,
+          }}
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
@@ -359,17 +389,29 @@ export const TBRScreen = memo(({ books }: { books: Book[] }) => {
               </Text>
             </Pressable>
 
-            <View style={{ alignItems: 'flex-end', flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View
+              style={{
+                alignItems: 'flex-end',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+              }}
+            >
               <Text className="text-[24px] font-bold text-black" variant="body">
                 TBR
               </Text>
-              <Text className="mb-0.5 text-[13px] text-[#9b9b9b]" variant="body">
+              <Text
+                className="mb-0.5 text-[13px] text-[#9b9b9b]"
+                variant="body"
+              >
                 {books.length} book{books.length !== 1 ? 's' : ''}
               </Text>
             </View>
 
             {books.length > 0 && (
-              <Text className="mt-1 text-[13px] text-[#9b9b9b]" variant="caption">
+              <Text
+                className="mt-1 text-[13px] text-[#9b9b9b]"
+                variant="caption"
+              >
                 {getPileQuip(books.length)}
               </Text>
             )}
@@ -378,7 +420,10 @@ export const TBRScreen = memo(({ books }: { books: Book[] }) => {
           {books.length === 0 ? (
             <View style={{ alignItems: 'center', gap: 16, marginTop: 64 }}>
               <Ionicons color="#d0d0d0" name="bookmark-outline" size={52} />
-              <Text className="text-center text-[15px] text-[#9b9b9b]" variant="body">
+              <Text
+                className="text-center text-[15px] text-[#9b9b9b]"
+                variant="body"
+              >
                 Nothing here yet.{'\n'}Head to Discover to find your next read.
               </Text>
             </View>
@@ -389,7 +434,10 @@ export const TBRScreen = memo(({ books }: { books: Book[] }) => {
               )}
 
               <View style={{ marginTop: 24 }}>
-                <Text className="mb-2 text-[12px] text-[#9b9b9b]" variant="caption">
+                <Text
+                  className="mb-2 text-[12px] text-[#9b9b9b]"
+                  variant="caption"
+                >
                   Hold ≡ to reprioritise
                 </Text>
                 <View
