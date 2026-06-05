@@ -5,9 +5,9 @@ import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import { Card, Container, Screen, Text } from '@/components';
 import { CreateShelfModal } from '@/features/library/components/CreateShelfModal';
-import { useCustomShelves } from '@/features/library/hooks/useCustomShelves';
+import { useArchivedShelves, useCustomShelves } from '@/features/library/hooks/useCustomShelves';
 import { useLibrarySections } from '@/features/library/hooks/useLibrarySections';
-import { useChallengeStore } from '@/store/challengeStore';
+import { useLiveChallenge } from '@/features/library/hooks/useLiveChallenge';
 import { useAuthStore } from '@/store/authStore';
 import { useUiStore } from '@/store/uiStore';
 
@@ -19,7 +19,7 @@ import { WhatToReadNextCard } from '../components/WhatToReadNextCard';
 const BookClubsPlaceholder = memo(() => (
   <Card className="items-center gap-4 rounded-[20px] border-[#e8e8e8] bg-[#f9f9f9] py-10">
     <View className="h-14 w-14 items-center justify-center rounded-full bg-[#ede9f7]">
-      <Ionicons color="#797DEA" name="people-outline" size={28} />
+      <Ionicons color="#7851A9" name="people-outline" size={28} />
     </View>
     <View className="items-center gap-2 px-4">
       <Text
@@ -38,7 +38,7 @@ const BookClubsPlaceholder = memo(() => (
     </View>
     <View className="rounded-full bg-[#ede9f7] px-4 py-1.5">
       <Text
-        className="text-[12px] font-medium text-[#797DEA]"
+        className="text-[12px] font-medium text-[#7851A9]"
         variant="caption"
       >
         Coming soon
@@ -50,18 +50,21 @@ BookClubsPlaceholder.displayName = 'BookClubsPlaceholder';
 
 export const LibraryScreen = memo(() => {
   const router = useRouter();
-  const challenge = useChallengeStore((state) => state.challenge);
+  const { challenge } = useLiveChallenge();
   const libraryTab = useUiStore((state) => state.libraryTab);
   const setLibraryTab = useUiStore((state) => state.setLibraryTab);
   const userId = useAuthStore((s) => s.user?.id ?? null);
   const {
+    dnf = [],
     keepReading = [],
     wantToRead = [],
     finished = [],
     isFetching,
   } = useLibrarySections();
   const { data: customShelves = [] } = useCustomShelves(userId);
+  const { data: archivedShelves = [] } = useArchivedShelves(userId);
   const [createShelfVisible, setCreateShelfVisible] = useState(false);
+  const [archivedExpanded, setArchivedExpanded] = useState(false);
 
   return (
     <Screen className="bg-[#fdfdfd]" contentClassName="gap-6 pt-2" scrollable>
@@ -92,7 +95,6 @@ export const LibraryScreen = memo(() => {
               <>
                 <LibraryShelfCard
                   books={keepReading}
-                  countLabel={`${keepReading.length} book${keepReading.length !== 1 ? 's' : ''}`}
                   showCaption={false}
                   status="reading"
                   title="Currently Reading"
@@ -100,19 +102,26 @@ export const LibraryScreen = memo(() => {
 
                 <LibraryShelfCard
                   books={wantToRead}
-                  countLabel={`${wantToRead.length} book${wantToRead.length !== 1 ? 's' : ''}`}
                   showCaption
                   status="want-to-read"
-                  title="Want to Read"
+                  title="TBR"
                 />
 
                 <LibraryShelfCard
                   books={finished}
-                  countLabel={`${finished.length} book${finished.length !== 1 ? 's' : ''}`}
                   showCaption
                   status="completed"
                   title="Finished"
                 />
+
+                {dnf.length > 0 && (
+                  <LibraryShelfCard
+                    books={dnf}
+                    showCaption={false}
+                    status="dnf"
+                    title="Did Not Finish"
+                  />
+                )}
 
                 {/* Custom shelves */}
                 <View className="gap-3">
@@ -128,9 +137,9 @@ export const LibraryScreen = memo(() => {
                       onPress={() => setCreateShelfVisible(true)}
                       style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
                     >
-                      <Ionicons color="#797DEA" name="add" size={18} />
+                      <Ionicons color="#7851A9" name="add" size={18} />
                       <Text
-                        className="text-[13px] font-medium text-[#797DEA]"
+                        className="text-[13px] font-medium text-[#7851A9]"
                         variant="body"
                       >
                         New shelf
@@ -138,14 +147,14 @@ export const LibraryScreen = memo(() => {
                     </Pressable>
                   </View>
 
-                  {customShelves.length === 0 ? (
+                  {customShelves.length === 0 && archivedShelves.length === 0 ? (
                     <Pressable
                       className="items-center gap-3 rounded-[17px] border border-dashed border-[#d0d0e8] py-8"
                       onPress={() => setCreateShelfVisible(true)}
                       style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
                     >
                       <View className="h-12 w-12 items-center justify-center rounded-full bg-[#ede9f7]">
-                        <Ionicons color="#797DEA" name="bookmark-outline" size={22} />
+                        <Ionicons color="#7851A9" name="bookmark-outline" size={22} />
                       </View>
                       <Text
                         className="text-[14px] text-[#9b9b9b]"
@@ -155,45 +164,116 @@ export const LibraryScreen = memo(() => {
                       </Text>
                     </Pressable>
                   ) : (
-                    customShelves.map((shelf) => (
-                      <Pressable
-                        key={shelf.id}
-                        onPress={() =>
-                          router.push(`/custom-shelf/${shelf.id}` as any)
-                        }
-                        style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
-                      >
-                        <Card className="flex-row items-center rounded-[17px] border-[#d9d9d9] bg-[#f9f9f9] px-5 py-4">
-                          <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#ede9f7]">
-                            <Ionicons
-                              color="#797DEA"
-                              name="bookmark-outline"
-                              size={18}
-                            />
-                          </View>
-                          <View className="flex-1">
-                            <Text
-                              className="text-[16px] font-medium text-black"
-                              variant="body"
-                            >
+                    <>
+                      {customShelves.map((shelf) => (
+                        <Pressable
+                          key={shelf.id}
+                          onPress={() =>
+                            router.push(`/custom-shelf/${shelf.id}` as any)
+                          }
+                          style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+                        >
+                          <Card className="flex-row items-center rounded-[17px] border-[#d9d9d9] bg-[#f9f9f9] px-5 py-4">
+                            <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#ede9f7]">
+                              <Ionicons
+                                color="#7851A9"
+                                name={shelf.isPrivate ? 'lock-closed-outline' : 'bookmark-outline'}
+                                size={18}
+                              />
+                            </View>
+                            <Text className="flex-1 text-[16px] font-medium text-black" variant="body">
                               {shelf.name}
                             </Text>
-                            <Text
-                              className="text-[13px] text-[#9b9b9b]"
-                              variant="body"
+                            {shelf.isPrivate && (
+                              <View className="mr-2 rounded-full bg-[#ede9f7] px-2 py-0.5">
+                                <Text className="text-[10px] font-semibold text-[#7851A9]" variant="caption">Secret</Text>
+                              </View>
+                            )}
+                            <View
+                              style={{
+                                backgroundColor: '#ede9f7',
+                                borderRadius: 20,
+                                marginRight: 8,
+                                paddingHorizontal: 8,
+                                paddingVertical: 2,
+                              }}
                             >
-                              {shelf.bookCount} book
-                              {shelf.bookCount !== 1 ? 's' : ''}
+                              <Text className="text-[12px] font-semibold text-[#7851A9]" variant="caption">
+                                {shelf.bookCount}
+                              </Text>
+                            </View>
+                            <Ionicons
+                              color="#c0c0c0"
+                              name="chevron-forward"
+                              size={18}
+                            />
+                          </Card>
+                        </Pressable>
+                      ))}
+
+                      {/* Archived shelves */}
+                      {archivedShelves.length > 0 && (
+                        <View className="gap-2">
+                          <Pressable
+                            className="flex-row items-center gap-2 py-1"
+                            onPress={() => setArchivedExpanded((v) => !v)}
+                            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+                          >
+                            <Ionicons color="#9b9b9b" name="archive-outline" size={15} />
+                            <Text className="flex-1 text-[13px] text-[#9b9b9b]" variant="body">
+                              Archived ({archivedShelves.length})
                             </Text>
-                          </View>
-                          <Ionicons
-                            color="#c0c0c0"
-                            name="chevron-forward"
-                            size={18}
-                          />
-                        </Card>
-                      </Pressable>
-                    ))
+                            <Ionicons
+                              color="#9b9b9b"
+                              name={archivedExpanded ? 'chevron-up' : 'chevron-down'}
+                              size={14}
+                            />
+                          </Pressable>
+
+                          {archivedExpanded &&
+                            archivedShelves.map((shelf) => (
+                              <Pressable
+                                key={shelf.id}
+                                onPress={() =>
+                                  router.push(`/custom-shelf/${shelf.id}` as any)
+                                }
+                                style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+                              >
+                                <Card className="flex-row items-center rounded-[17px] border-[#e8e8e8] bg-[#f5f5f5] px-5 py-4">
+                                  <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#f0f0f0]">
+                                    <Ionicons
+                                      color="#b0b0b0"
+                                      name="archive-outline"
+                                      size={18}
+                                    />
+                                  </View>
+                                  <Text className="flex-1 text-[16px] font-medium text-[#7a7a7a]" variant="body">
+                                    {shelf.name}
+                                  </Text>
+                                  <View
+                                    style={{
+                                      backgroundColor: '#efefef',
+                                      borderRadius: 20,
+                                      marginRight: 8,
+                                      paddingHorizontal: 8,
+                                      paddingVertical: 2,
+                                    }}
+                                  >
+                                    <Text className="text-[12px] font-semibold text-[#9b9b9b]" variant="caption">
+                                      {shelf.bookCount}
+                                    </Text>
+                                  </View>
+                                  <Ionicons
+                                    color="#c8c8c8"
+                                    name="chevron-forward"
+                                    size={18}
+                                  />
+                                </Card>
+                              </Pressable>
+                            ))}
+                        </View>
+                      )}
+                    </>
                   )}
                 </View>
               </>
