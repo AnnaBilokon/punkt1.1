@@ -245,6 +245,12 @@ export const ReadingChallengeDetailScreen = memo(() => {
   );
   const statusMessage = getStatusMessage(progress);
 
+  // Behind-schedule alert: compare actual pace vs ideal pace
+  const monthsElapsed = CURRENT_MONTH - 1;
+  const expectedByNow = Math.round((challenge.goal / 12) * monthsElapsed);
+  const booksBehind = expectedByNow - challenge.completed;
+  const isBehind = monthsElapsed > 0 && booksBehind > 1 && progress < 100;
+
   const allCompletedBooks = Object.values(monthlyBooks).flat();
 
   const totalPages = allCompletedBooks.reduce(
@@ -327,6 +333,24 @@ export const ReadingChallengeDetailScreen = memo(() => {
             </Text>
           </View>
         </View>
+
+        {/* Behind-schedule alert */}
+        {isBehind && (
+          <View
+            className="flex-row items-start gap-3 rounded-[14px] px-4 py-3"
+            style={{ backgroundColor: '#fffbeb', borderColor: '#f5c842', borderWidth: 1 }}
+          >
+            <Text className="text-[18px]" variant="body">⚠️</Text>
+            <View className="flex-1 gap-0.5">
+              <Text className="text-[13px] font-semibold text-[#92400e]" variant="body">
+                You&apos;re {booksBehind} book{booksBehind !== 1 ? 's' : ''} behind pace
+              </Text>
+              <Text className="text-[12px] text-[#a16207]" variant="body">
+                To finish on time, aim for ~{booksPerMonth} book{booksPerMonth !== 1 ? 's' : ''}/month over the next {monthsLeft} month{monthsLeft !== 1 ? 's' : ''}.
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* Stats row */}
         <View className="flex-row gap-3">

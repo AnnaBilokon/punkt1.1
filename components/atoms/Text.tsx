@@ -1,6 +1,12 @@
 import type { ReactNode } from 'react';
 import { memo } from 'react';
-import { type StyleProp, Text as RNText, type TextStyle } from 'react-native';
+import {
+  type NativeSyntheticEvent,
+  type StyleProp,
+  Text as RNText,
+  type TextLayoutEventData,
+  type TextStyle,
+} from 'react-native';
 
 import { cn } from '@/shared/lib/cn';
 
@@ -10,6 +16,7 @@ type AppTextProps = {
   children: ReactNode;
   className?: string;
   numberOfLines?: number;
+  onTextLayout?: (e: NativeSyntheticEvent<TextLayoutEventData>) => void;
   style?: StyleProp<TextStyle>;
   variant?: TextVariant;
 };
@@ -28,12 +35,14 @@ export const Text = memo(
     children,
     className,
     numberOfLines,
+    onTextLayout,
     style,
     variant = 'body',
   }: AppTextProps) => (
     <RNText
       className={cn(variantClasses[variant], className)}
       numberOfLines={numberOfLines}
+      onTextLayout={onTextLayout}
       style={style}
     >
       {children}

@@ -14,10 +14,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/atoms/Text';
 import { AppDialog, type DialogButton } from '@/components/molecules/AppDialog';
 import { AddBookModal } from '@/features/discover/components/AddBookModal';
-import { AddToShelfModal } from '@/features/library/components/AddToShelfModal';
-import { useBookSearch } from '@/features/discover/hooks/useBookSearch';
+import { BarcodeScannerModal } from '@/features/discover/components/BarcodeScannerModal';
+import { type SearchMode,useBookSearch } from '@/features/discover/hooks/useBookSearch';
 import { useGenreBooks } from '@/features/discover/hooks/useGenreBooks';
 import { useNytBestsellers } from '@/features/discover/hooks/useNytBestsellers';
+import { AddToShelfModal } from '@/features/library/components/AddToShelfModal';
 import { useAuthStore } from '@/store/authStore';
 import { useBookStore } from '@/store/bookStore';
 import type { Book } from '@/types';
@@ -31,7 +32,7 @@ type GenreCard = { color: string; icon: string; label: string; query: string };
 
 const GENRE_CARDS: GenreCard[] = [
   {
-    color: '#7D5BA6',
+    color: '#7851A9',
     icon: 'book-outline',
     label: 'Fiction',
     query: 'Fiction',
@@ -139,7 +140,7 @@ function TrendingBookCard({
           className="w-full items-center justify-center bg-[#f1edf8]"
           style={{ aspectRatio: 0.75 }}
         >
-          <Ionicons color="#7D5BA6" name="book-outline" size={36} />
+          <Ionicons color="#7851A9" name="book-outline" size={36} />
         </View>
       )}
 
@@ -214,7 +215,7 @@ function BookListRow({
         />
       ) : (
         <View className="h-[60px] w-[44px] items-center justify-center rounded-[8px] bg-[#f1edf8]">
-          <Ionicons color="#7D5BA6" name="book-outline" size={20} />
+          <Ionicons color="#7851A9" name="book-outline" size={20} />
         </View>
       )}
       <View className="flex-1 gap-0.5">
@@ -225,6 +226,11 @@ function BookListRow({
           {book.title}
         </Text>
         <Text className="text-[12px] text-[#6d7a88]">{book.author}</Text>
+        {book.publisher && (
+          <Text className="text-[11px] text-[#9b9b9b]" numberOfLines={1}>
+            {book.publisher}
+          </Text>
+        )}
         {book.rating > 0 && (
           <View className="flex-row items-center gap-1">
             <Ionicons color="#F5C518" name="star" size={11} />
@@ -236,7 +242,7 @@ function BookListRow({
       </View>
       <View className="flex-row items-center gap-2">
         <View className="rounded-[5px] bg-[#f1edf8] px-2 py-0.5">
-          <Text className="text-[11px] text-[#7D5BA6]">{book.genres[0]}</Text>
+          <Text className="text-[11px] text-[#7851A9]">{book.genres[0]}</Text>
         </View>
         {onEdit && book.id.startsWith('custom-') && (
           <Pressable
@@ -248,7 +254,7 @@ function BookListRow({
               onEdit(book);
             }}
           >
-            <Ionicons color="#7D5BA6" name="pencil" size={14} />
+            <Ionicons color="#7851A9" name="pencil" size={14} />
           </Pressable>
         )}
         {onAdd && (
@@ -271,8 +277,10 @@ function BookListRow({
 
 export const DiscoverScreen = () => {
   const [query, setQuery] = useState('');
+  const [searchMode, setSearchMode] = useState<SearchMode>('default');
   const [activeTab, setActiveTab] = useState<DiscoverTab>('genres');
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+  const [scannerVisible, setScannerVisible] = useState(false);
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | undefined>(undefined);
   const [addToShelfBook, setAddToShelfBook] = useState<Book | null>(null);
@@ -286,7 +294,7 @@ export const DiscoverScreen = () => {
   const addBook = useBookStore((s) => s.addBook);
 
   const { data: searchResults = [], isFetching: isSearching } =
-    useBookSearch(query);
+    useBookSearch(query, searchMode);
   const { data: trendingBooks = [], isFetching: isTrendingLoading } =
     useNytBestsellers();
   const { data: genreBooks = [], isFetching: isGenreLoading } =
@@ -324,7 +332,7 @@ export const DiscoverScreen = () => {
               <TextInput
                 className="flex-1 text-[14px] text-black"
                 onChangeText={setQuery}
-                placeholder="Search books, authors or genres"
+                placeholder={searchMode === 'publisher' ? 'Search by publisher name' : 'Search books, authors or genres'}
                 placeholderTextColor="rgba(109,122,136,0.6)"
                 value={query}
               />
@@ -340,6 +348,17 @@ export const DiscoverScreen = () => {
                 </Pressable>
               )}
             </View>
+            {/* Scan barcode button */}
+            <Pressable
+              accessibilityLabel="Scan book barcode"
+              accessibilityRole="button"
+              className="items-center justify-center rounded-[10px] border border-[#d9d9d9] bg-[#f9f9f9]"
+              hitSlop={4}
+              onPress={() => setScannerVisible(true)}
+              style={{ width: 45, height: 45 }}
+            >
+              <Ionicons color="#7851A9" name="barcode-outline" size={22} />
+            </Pressable>
             {/* Add book button */}
             <Pressable
               accessibilityLabel="Add a book to database"
@@ -350,6 +369,42 @@ export const DiscoverScreen = () => {
               style={{ width: 45, height: 45 }}
             >
               <Ionicons color="white" name="add" size={24} />
+            </Pressable>
+          </View>
+
+          {/* Search mode toggle */}
+          <View className="mt-2.5 flex-row gap-2">
+            <Pressable
+              className="flex-row items-center gap-1 rounded-full px-3 py-1.5"
+              onPress={() => setSearchMode('default')}
+              style={{ backgroundColor: searchMode === 'default' ? '#7851A9' : '#f1edf8' }}
+            >
+              <Ionicons
+                color={searchMode === 'default' ? 'white' : '#7851A9'}
+                name="book-outline"
+                size={12}
+              />
+              <Text
+                className={`text-[12px] font-medium ${searchMode === 'default' ? 'text-white' : 'text-[#7851A9]'}`}
+              >
+                Title / Author
+              </Text>
+            </Pressable>
+            <Pressable
+              className="flex-row items-center gap-1 rounded-full px-3 py-1.5"
+              onPress={() => setSearchMode('publisher')}
+              style={{ backgroundColor: searchMode === 'publisher' ? '#7851A9' : '#f1edf8' }}
+            >
+              <Ionicons
+                color={searchMode === 'publisher' ? 'white' : '#7851A9'}
+                name="business-outline"
+                size={12}
+              />
+              <Text
+                className={`text-[12px] font-medium ${searchMode === 'publisher' ? 'text-white' : 'text-[#7851A9]'}`}
+              >
+                Publisher
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -469,7 +524,7 @@ export const DiscoverScreen = () => {
                   >
                     <Text
                       className={`text-[14px] ${
-                        !selectedGenre ? 'text-white' : 'text-[#7D5BA6]'
+                        !selectedGenre ? 'text-white' : 'text-[#7851A9]'
                       }`}
                     >
                       All
@@ -494,7 +549,7 @@ export const DiscoverScreen = () => {
                         className={`text-[14px] ${
                           selectedGenre === genre.query
                             ? 'text-white'
-                            : 'text-[#7D5BA6]'
+                            : 'text-[#7851A9]'
                         }`}
                       >
                         {genre.label}
@@ -569,6 +624,7 @@ export const DiscoverScreen = () => {
         bookApiId={addToShelfBook?.id ?? null}
         visible={addToShelfBook !== null}
         onClose={() => setAddToShelfBook(null)}
+        onSaved={() => setQuery('')}
       />
       <AppDialog
         buttons={dialog?.buttons ?? []}
@@ -576,6 +632,14 @@ export const DiscoverScreen = () => {
         onClose={() => setDialog(null)}
         title={dialog?.title ?? ''}
         visible={!!dialog}
+      />
+      <BarcodeScannerModal
+        visible={scannerVisible}
+        onClose={() => setScannerVisible(false)}
+        onScan={(isbn) => {
+          setSearchMode('default');
+          setQuery(isbn);
+        }}
       />
     </SafeAreaView>
   );

@@ -10,7 +10,6 @@ import { BookHorizontalList } from './BookHorizontalList';
 
 type LibraryShelfCardProps = {
   books: Book[];
-  countLabel: string;
   showCaption?: boolean;
   status: BookStatus;
   title: string;
@@ -19,7 +18,6 @@ type LibraryShelfCardProps = {
 export const LibraryShelfCard = memo(
   ({
     books,
-    countLabel,
     showCaption = false,
     status,
     title,
@@ -29,11 +27,23 @@ export const LibraryShelfCard = memo(
     return (
       <Card className="rounded-[17px] border-[#d9d9d9] bg-[#f9f9f9] px-5 py-5">
         <View className="mb-5 flex-row items-center justify-between">
-          <View className="flex-row items-center gap-3">
-            <Ionicons color="#8285EC" name="book-outline" size={24} />
+          <View className="flex-row items-center gap-2">
+            <Ionicons color="#7851A9" name="book-outline" size={24} />
             <Text className="text-[18px] font-medium text-black" variant="body">
               {title}
             </Text>
+            <View
+              style={{
+                backgroundColor: '#ede9f7',
+                borderRadius: 20,
+                paddingHorizontal: 8,
+                paddingVertical: 2,
+              }}
+            >
+              <Text className="text-[12px] font-semibold text-[#7851A9]" variant="caption">
+                {books.length}
+              </Text>
+            </View>
           </View>
           <Pressable
             className="flex-row items-center gap-1"
@@ -41,12 +51,12 @@ export const LibraryShelfCard = memo(
             style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           >
             <Text
-              className="text-[12px] font-medium text-[#797DEA]"
+              className="text-[12px] font-medium text-[#7851A9]"
               variant="body"
             >
-              {countLabel}
+              See all
             </Text>
-            <Ionicons color="#797DEA" name="chevron-forward" size={14} />
+            <Ionicons color="#7851A9" name="chevron-forward" size={14} />
           </Pressable>
         </View>
         <BookHorizontalList

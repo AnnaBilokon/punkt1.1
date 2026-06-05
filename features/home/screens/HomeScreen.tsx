@@ -24,15 +24,16 @@ import {
 import { getChallengeProgress } from '@/entities/challenge';
 import { getInitials } from '@/entities/user';
 import { useNytBestsellers } from '@/features/discover/hooks/useNytBestsellers';
-import { useCustomShelves } from '@/features/library/hooks/useCustomShelves';
-import { useLiveChallenge } from '@/features/library/hooks/useLiveChallenge';
-import { useLibrarySections } from '@/features/library/hooks/useLibrarySections';
 import { WhatToReadNextCard } from '@/features/library/components/WhatToReadNextCard';
+import { useCustomShelves } from '@/features/library/hooks/useCustomShelves';
+import { useLibrarySections } from '@/features/library/hooks/useLibrarySections';
+import { useLiveChallenge } from '@/features/library/hooks/useLiveChallenge';
+import { useStreak } from '@/features/profile/hooks/useStreak';
 import { useAuthStore } from '@/store/authStore';
 import { useProfileStore } from '@/store/profileStore';
 import type { Book } from '@/types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const bookHref = (id: string, tab?: string) =>
   (tab ? `/book/${id}?tab=${tab}` : `/book/${id}`) as any;
 
@@ -150,6 +151,7 @@ export const HomeScreen = memo(() => {
   const { dnf = [], keepReading = [], wantToRead = [], finished = [], isFetching } = useLibrarySections();
   const { data: picks = [] } = useNytBestsellers();
   const { data: customShelves = [] } = useCustomShelves(user?.id ?? null);
+  const { data: streakData } = useStreak(user?.id ?? null);
   const widgets = useProfileStore((s) => s.homeWidgets);
   const { width: screenWidth } = useWindowDimensions();
   const firstName = user?.name?.split(' ')[0] ?? 'there';
@@ -294,6 +296,44 @@ export const HomeScreen = memo(() => {
         case 'readingChallenge':
           return <ChallengeStrip key="readingChallenge" onPress={() => router.push('/challenge' as any)} />;
 
+        case 'streak': {
+          const current = streakData?.current ?? 0;
+          const best = streakData?.best ?? 0;
+          return (
+            <TouchableOpacity
+              key="streak"
+              activeOpacity={0.85}
+              onPress={() => router.push('/challenge' as any)}
+            >
+              <Card className="rounded-[17px] border-[#d9d9d9] bg-[#f9f9f9] px-5 py-4">
+                <View className="flex-row items-center justify-between">
+                  <View className="gap-1">
+                    <Text className="text-[13px] text-[#6d6d6d]" variant="caption">
+                      Reading Streak
+                    </Text>
+                    <View className="flex-row items-end gap-1.5">
+                      <Text className="text-[28px] font-semibold text-[#7851A9]" variant="body">
+                        {current}
+                      </Text>
+                      <Text className="pb-0.5 text-[14px] text-[#9b9b9b]" variant="caption">
+                        {current === 1 ? 'day' : 'days'}
+                      </Text>
+                    </View>
+                    {best > 0 && (
+                      <Text className="text-[12px] text-[#9b9b9b]" variant="caption">
+                        Best: {best} {best === 1 ? 'day' : 'days'}
+                      </Text>
+                    )}
+                  </View>
+                  <View className="h-14 w-14 items-center justify-center rounded-full bg-[#ede9f7]">
+                    <Text className="text-[28px]" variant="body">🔥</Text>
+                  </View>
+                </View>
+              </Card>
+            </TouchableOpacity>
+          );
+        }
+
         case 'customShelves':
           return customShelves.length > 0 ? (
             <View key="customShelves" className="gap-3">
@@ -324,7 +364,7 @@ export const HomeScreen = memo(() => {
           return null;
       }
     },
-    [router, keepReading, wantToRead, finished, dnf, customShelves, isFetching, activeIndex, CARD_WIDTH, CARD_GAP],
+    [router, keepReading, wantToRead, finished, dnf, customShelves, streakData, isFetching, activeIndex, CARD_WIDTH, CARD_GAP],
   );
 
   return (

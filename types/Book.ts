@@ -1,10 +1,13 @@
-export type BookStatus = 'reading' | 'completed' | 'want-to-read';
+export type BookStatus = 'reading' | 'completed' | 'want-to-read' | 'dnf';
 export type BookFormat = 'audio' | 'paper' | 'ebook';
 
 export type Book = {
   author: string;
+  boughtAt?: string;
   coverImage: string;
   description: string;
+  dnfPage?: number;
+  dnfReason?: string;
   finishedAt?: string;
   format?: BookFormat;
   genres: string[];
@@ -21,11 +24,15 @@ export type Book = {
   review?: string;
   startedAt?: string;
   status: BookStatus | null;
+  tags?: string[];
   title: string;
 };
 
 /** Fields that can be written to user_books when tracking a reading session. */
 export type ReadingDataUpdate = {
+  boughtAt?: string | null;
+  dnfPage?: number | null;
+  dnfReason?: string | null;
   finishedAt?: string | null;
   format?: BookFormat | null;
   myRating?: number | null;
@@ -34,4 +41,5 @@ export type ReadingDataUpdate = {
   review?: string | null;
   startedAt?: string | null;
   status?: BookStatus | null;
+  tags?: string[];
 };

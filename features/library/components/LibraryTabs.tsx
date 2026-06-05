@@ -29,7 +29,7 @@ export const LibraryTabs = ({ onChange, value }: LibraryTabsProps) => (
       }}
     >
       <Ionicons
-        color={value === 'bookshelves' ? '#8285EC' : '#6d6d6d'}
+        color={value === 'bookshelves' ? '#7851A9' : '#6d6d6d'}
         name="book-outline"
         size={15}
       />

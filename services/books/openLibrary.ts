@@ -13,6 +13,7 @@ type OLDoc = {
   first_publish_year?: number;
   number_of_pages_median?: number;
   ratings_average?: number;
+  publisher?: string[];
 };
 
 type OLResponse = {
@@ -30,19 +31,44 @@ const mapOLDoc = (doc: OLDoc): Book => ({
   pages: doc.number_of_pages_median ?? 0,
   progress: 0,
   publishedYear: doc.first_publish_year ?? 0,
+  ...(doc.publisher?.[0] ? { publisher: doc.publisher[0] } : {}),
   rating: doc.ratings_average ? Math.round(doc.ratings_average * 10) / 10 : 0,
   status: null,
   title: doc.title,
 });
 
 const FIELDS =
-  'key,title,author_name,cover_i,subject,first_publish_year,number_of_pages_median,ratings_average';
+  'key,title,author_name,cover_i,subject,first_publish_year,number_of_pages_median,ratings_average,publisher';
 
 export const searchOpenLibrary = async (query: string): Promise<Book[]> => {
   const data = await openLibraryClient.get<OLResponse>('/search.json', {
     params: { fields: FIELDS, limit: 20, q: query },
   });
   return (data.docs ?? []).map(mapOLDoc);
+};
+
+export const searchOpenLibraryByPublisher = async (publisher: string): Promise<Book[]> => {
+  // Three strategies hit different indexes / result sets
+  const [exactQ, directParam, unquotedNew] = await Promise.allSettled([
+    openLibraryClient.get<OLResponse>('/search.json', {
+      params: { fields: FIELDS, limit: 100, q: `publisher:"${publisher}"` },
+    }),
+    openLibraryClient.get<OLResponse>('/search.json', {
+      params: { fields: FIELDS, limit: 100, publisher },
+    }),
+    openLibraryClient.get<OLResponse>('/search.json', {
+      params: { fields: FIELDS, limit: 100, q: `publisher:${publisher}`, sort: 'new' },
+    }),
+  ]);
+  const r1 = exactQ.status === 'fulfilled' ? (exactQ.value.docs ?? []).map(mapOLDoc) : [];
+  const r2 = directParam.status === 'fulfilled' ? (directParam.value.docs ?? []).map(mapOLDoc) : [];
+  const r3 = unquotedNew.status === 'fulfilled' ? (unquotedNew.value.docs ?? []).map(mapOLDoc) : [];
+  const seen = new Set<string>();
+  return [...r1, ...r2, ...r3].filter((b) => {
+    if (seen.has(b.id)) return false;
+    seen.add(b.id);
+    return true;
+  });
 };
 
 export const searchOpenLibraryByIsbn = async (isbn: string): Promise<Book[]> => {

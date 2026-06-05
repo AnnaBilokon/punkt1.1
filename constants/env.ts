@@ -4,6 +4,9 @@ export const env = {
   googleBooksBaseUrl:
     process.env.EXPO_PUBLIC_GOOGLE_BOOKS_BASE_URL ??
     'https://www.googleapis.com/books/v1',
+  isbndbApiKey: process.env.EXPO_PUBLIC_ISBN_API_KEY ?? '',
+  isbndbBaseUrl:
+    process.env.EXPO_PUBLIC_ISBNDB_BASE_URL ?? 'https://api2.isbndb.com',
   nytBooksApiKey: process.env.EXPO_PUBLIC_NYT_BOOKS_API_KEY ?? '',
   nytBooksBaseUrl:
     process.env.EXPO_PUBLIC_NYT_BOOKS_BASE_URL ??

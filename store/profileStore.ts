@@ -2,8 +2,18 @@ import { create } from 'zustand';
 
 import { profileService } from '@/services/profile/profileService';
 import { queryClient } from '@/shared/lib/queryClient';
-import type { HomeWidgets } from '@/types';
+import type { HomeWidgets, WidgetItem } from '@/types';
 import { DEFAULT_HOME_WIDGETS } from '@/types';
+
+const mergeWithDefaults = (stored: HomeWidgets): HomeWidgets => {
+  const result: WidgetItem[] = stored.map((w) => ({ ...w }));
+  for (const def of DEFAULT_HOME_WIDGETS) {
+    if (!result.some((w) => w.id === def.id)) {
+      result.push({ ...def });
+    }
+  }
+  return result;
+};
 
 export const profileQueryKey = (userId: string) => ['profile', userId] as const;
 
@@ -24,7 +34,7 @@ export const useProfileStore = create<ProfileStoreState>()((set) => ({
   homeWidgets: DEFAULT_HOME_WIDGETS,
   tbrOrder: [],
 
-  setHomeWidgets: (widgets) => set({ homeWidgets: widgets }),
+  setHomeWidgets: (widgets) => set({ homeWidgets: mergeWithDefaults(widgets) }),
   setTbrOrder: (order) => set({ tbrOrder: order }),
 
   updateProfile: async (userId, updates) => {

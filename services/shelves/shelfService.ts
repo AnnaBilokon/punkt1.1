@@ -3,6 +3,8 @@ import type { Book, BookStatus, CustomShelf } from '@/types';
 
 type ShelfRow = {
   id: string;
+  is_archived: boolean;
+  is_private: boolean;
   name: string;
   shelf_books: [{ count: number }];
 };
@@ -32,6 +34,8 @@ type UserBookRow = {
 const rowToShelf = (row: ShelfRow): CustomShelf => ({
   bookCount: row.shelf_books?.[0]?.count ?? 0,
   id: row.id,
+  isArchived: row.is_archived,
+  isPrivate: row.is_private,
   name: row.name,
 });
 
@@ -61,21 +65,41 @@ export const shelfService = {
   getCustomShelves: async (userId: string): Promise<CustomShelf[]> => {
     const { data, error } = await supabase
       .from('custom_shelves')
-      .select('id, name, shelf_books(count)')
+      .select('id, name, is_archived, is_private, shelf_books(count)')
       .eq('user_id', userId)
+      .eq('is_archived', false)
       .order('created_at', { ascending: true });
     if (error) throw new Error(error.message);
     return ((data ?? []) as unknown as ShelfRow[]).map(rowToShelf);
   },
 
-  createShelf: async (userId: string, name: string): Promise<CustomShelf> => {
+  getArchivedShelves: async (userId: string): Promise<CustomShelf[]> => {
     const { data, error } = await supabase
       .from('custom_shelves')
-      .insert({ name: name.trim(), user_id: userId })
-      .select('id, name, shelf_books(count)')
+      .select('id, name, is_archived, is_private, shelf_books(count)')
+      .eq('user_id', userId)
+      .eq('is_archived', true)
+      .order('created_at', { ascending: true });
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as unknown as ShelfRow[]).map(rowToShelf);
+  },
+
+  createShelf: async (userId: string, name: string, isPrivate = false): Promise<CustomShelf> => {
+    const { data, error } = await supabase
+      .from('custom_shelves')
+      .insert({ is_private: isPrivate, name: name.trim(), user_id: userId })
+      .select('id, name, is_archived, is_private, shelf_books(count)')
       .single();
     if (error) throw new Error(error.message);
     return rowToShelf(data as unknown as ShelfRow);
+  },
+
+  setPrivate: async (shelfId: string, isPrivate: boolean): Promise<void> => {
+    const { error } = await supabase
+      .from('custom_shelves')
+      .update({ is_private: isPrivate })
+      .eq('id', shelfId);
+    if (error) throw new Error(error.message);
   },
 
   deleteShelf: async (shelfId: string): Promise<void> => {
@@ -90,6 +114,22 @@ export const shelfService = {
     const { error } = await supabase
       .from('custom_shelves')
       .update({ name: name.trim() })
+      .eq('id', shelfId);
+    if (error) throw new Error(error.message);
+  },
+
+  archiveShelf: async (shelfId: string): Promise<void> => {
+    const { error } = await supabase
+      .from('custom_shelves')
+      .update({ is_archived: true })
+      .eq('id', shelfId);
+    if (error) throw new Error(error.message);
+  },
+
+  unarchiveShelf: async (shelfId: string): Promise<void> => {
+    const { error } = await supabase
+      .from('custom_shelves')
+      .update({ is_archived: false })
       .eq('id', shelfId);
     if (error) throw new Error(error.message);
   },

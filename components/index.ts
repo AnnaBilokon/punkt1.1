@@ -9,5 +9,6 @@ export * from './organisms/BookCard';
 export * from './organisms/Card';
 export * from './organisms/Container';
 export * from './organisms/FloatingActionButton';
+export * from './organisms/GoalScrollPicker';
 export * from './organisms/ProgressRing';
 export * from './organisms/Screen';
