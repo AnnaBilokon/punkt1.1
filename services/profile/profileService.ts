@@ -9,6 +9,7 @@ type ProfileRow = {
   display_name: string;
   home_widgets: HomeWidgets | null;
   id: string;
+  preferred_genres: string[] | null;
   tbr_order: string[] | null;
 };
 
@@ -32,6 +33,7 @@ const rowToProfile = (row: ProfileRow): Profile => ({
   displayName: row.display_name,
   homeWidgets: parseWidgets(row.home_widgets),
   id: row.id,
+  preferredGenres: Array.isArray(row.preferred_genres) ? row.preferred_genres : [],
   tbrOrder: Array.isArray(row.tbr_order) ? row.tbr_order : [],
 });
 
@@ -52,7 +54,7 @@ export const profileService = {
     return count ?? 0;
   },
 
-  getProfile: async (userId: string): Promise<Profile> => {
+  getProfile: async (userId: string, fallbackName?: string): Promise<Profile> => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -63,9 +65,18 @@ export const profileService = {
 
     if (!data) {
       return profileService.upsertProfile(userId, {
-        displayName: '',
+        displayName: fallbackName ?? '',
         bio: null,
         avatarUrl: null,
+      });
+    }
+
+    // Backfill display_name if row exists but name is empty
+    if (!data.display_name && fallbackName) {
+      return profileService.upsertProfile(userId, {
+        avatarUrl: (data as ProfileRow).avatar_url,
+        bio: (data as ProfileRow).bio,
+        displayName: fallbackName,
       });
     }
 
@@ -131,6 +142,23 @@ export const profileService = {
 
   changePassword: async (newPassword: string): Promise<void> => {
     const { error } = await authService.changePassword(newPassword);
+    if (error) throw new Error(error.message);
+  },
+
+  updateGenres: async (userId: string, genres: string[]): Promise<void> => {
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: userId, preferred_genres: genres }, { onConflict: 'id' });
+    if (error) throw new Error(error.message);
+  },
+
+  initProfile: async (userId: string, displayName: string, genres: string[]): Promise<void> => {
+    const { error } = await supabase
+      .from('profiles')
+      .upsert(
+        { id: userId, display_name: displayName, preferred_genres: genres },
+        { onConflict: 'id' },
+      );
     if (error) throw new Error(error.message);
   },
 

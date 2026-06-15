@@ -15,12 +15,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar, Button, Card, GoalScrollPicker, Text } from '@/components';
 import { getInitials } from '@/entities/user';
-import {
-  type Achievement,
-  useAchievements,
-} from '@/features/profile/hooks/useAchievements';
+import { BadgeCard } from '@/features/profile/components/BadgeCard';
+import { useAchievements } from '@/features/profile/hooks/useAchievements';
 import { useProfile } from '@/features/profile/hooks/useProfile';
 import { useProfileStats } from '@/features/profile/hooks/useProfileStats';
+import { useStreak } from '@/features/profile/hooks/useStreak';
 import { profileService } from '@/services/profile/profileService';
 import { useAuthStore } from '@/store/authStore';
 import { useChallengeStore } from '@/store/challengeStore';
@@ -29,6 +28,7 @@ import { useProfileStore } from '@/store/profileStore';
 const BRAND = '#7851A9';
 
 // ─── Stat item ────────────────────────────────────────────────────────────────
+
 
 const StatItem = memo(
   ({ isFetching, label, value }: { isFetching: boolean; label: string; value: number }) => (
@@ -47,40 +47,6 @@ const StatItem = memo(
   ),
 );
 StatItem.displayName = 'StatItem';
-
-// ─── Achievement badge ─────────────────────────────────────────────────────────
-
-const BadgeCard = memo(({ badge }: { badge: Achievement }) => {
-  const onPress = useCallback(() => {
-    if (badge.earned) {
-      Alert.alert(badge.emoji + ' ' + badge.label, 'Achievement earned! 🎉');
-    } else {
-      Alert.alert('Locked', badge.hint);
-    }
-  }, [badge]);
-
-  return (
-    <Pressable
-      className="w-[30%] items-center gap-2 rounded-[16px] border border-[#e8e8e8] bg-[#f9f9f9] py-4"
-      onPress={onPress}
-      style={({ pressed }) => ({
-        opacity: !badge.earned ? 0.38 : pressed ? 0.7 : 1,
-      })}
-    >
-      <Text className="text-[28px]" variant="body">
-        {badge.emoji}
-      </Text>
-      <Text
-        className="px-1 text-center text-[11px] font-medium text-[#313C5D]"
-        numberOfLines={2}
-        variant="caption"
-      >
-        {badge.label}
-      </Text>
-    </Pressable>
-  );
-});
-BadgeCard.displayName = 'BadgeCard';
 
 // ─── Settings row ──────────────────────────────────────────────────────────────
 
@@ -368,9 +334,16 @@ export const ProfileScreen = memo(() => {
   const updateProfile = useProfileStore((s) => s.updateProfile);
 
 
-  const { data: profile } = useProfile(user?.id ?? null);
-  const { books, booksRead, isFetching, memberSince, reviewsCount, xp } = useProfileStats();
-  const achievements = useAchievements(books, reviewsCount);
+  const { data: profile } = useProfile(user?.id ?? null, user?.name);
+  const { books, booksRead, isFetching, journalCount, memberSince, reReadsCount, reviewsCount, xp } = useProfileStats();
+  const { data: streakData } = useStreak(user?.id ?? null);
+  const achievements = useAchievements({
+    books,
+    currentStreak: streakData?.current ?? 0,
+    journalCount,
+    reReadsCount,
+    reviewsCount,
+  });
 
   const [goalSheetVisible, setGoalSheetVisible] = useState(false);
   const [editProfileVisible, setEditProfileVisible] = useState(false);
@@ -386,7 +359,11 @@ export const ProfileScreen = memo(() => {
     if (profile?.tbrOrder) setTbrOrder(profile.tbrOrder);
   }, [profile?.homeWidgets, profile?.tbrOrder, setHomeWidgets, setTbrOrder]);
 
-  const allEarned = achievements.every((a) => a.earned);
+  const earnedCount = achievements.filter((a) => a.earned).length;
+  const previewBadges = [
+    ...achievements.filter((a) => a.earned),
+    ...achievements.filter((a) => !a.earned),
+  ].slice(0, 3);
   const initials = user ? getInitials(user) : '?';
   const displayName = profile?.displayName || user?.name || 'Reader';
   const avatarUri = profile?.avatarUrl || user?.avatarUrl || undefined;
@@ -554,20 +531,28 @@ export const ProfileScreen = memo(() => {
         </View>
 
         {/* ── Achievements ── */}
-        <View className="mt-6 gap-4 px-4">
-          <Text className="text-[17px] font-semibold text-black" variant="body">
-            Achievements
-          </Text>
-          <View className="flex-row flex-wrap gap-[5%]">
-            {achievements.map((badge) => (
+        <View className="mt-6 px-4">
+          <View className="mb-3 flex-row items-center justify-between">
+            <Text className="text-[17px] font-semibold text-black" variant="body">
+              Achievements
+            </Text>
+            <Pressable
+              onPress={() => router.push('/achievements' as any)}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <Text className="text-[13px] text-[#7851A9]" variant="body">
+                See all {achievements.length} →
+              </Text>
+            </Pressable>
+          </View>
+          <View className="flex-row gap-[5%]">
+            {previewBadges.map((badge) => (
               <BadgeCard key={badge.id} badge={badge} />
             ))}
           </View>
-          {allEarned && (
-            <Text className="mt-1 text-center text-[13px] text-[#7851A9]" variant="caption">
-              You&apos;ve earned all badges! 🎉
-            </Text>
-          )}
+          <Text className="mt-2 text-[12px] text-[#9b9b9b]" variant="caption">
+            {earnedCount} of {achievements.length} unlocked
+          </Text>
         </View>
 
         {/* ── Settings ── */}

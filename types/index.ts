@@ -1,4 +1,5 @@
 export * from './Book';
+export * from './Follow';
 export * from './BookQuote';
 export * from './BookRead';
 export * from './Bookshelf';

@@ -9,6 +9,7 @@ import { Container } from '@/components/organisms/Container';
 import { Screen } from '@/components/organisms/Screen';
 import { useSignUpForm } from '@/features/auth/hooks/useSignUpForm';
 import { authService } from '@/services/auth/authService';
+import { profileService } from '@/services/profile/profileService';
 import { useAuthStore } from '@/store/authStore';
 
 export const SignUpScreen = () => {
@@ -34,6 +35,7 @@ export const SignUpScreen = () => {
     }
 
     if (result.user) {
+      void profileService.initProfile(result.user.id, data.name, []);
       setUser({
         avatarUrl: '',
         booksReadThisYear: 0,
@@ -42,7 +44,7 @@ export const SignUpScreen = () => {
         readingGoal: 0,
         username: result.user.email ?? '',
       });
-      router.replace('/(tabs)/library');
+      router.replace('/onboarding');
     }
   });
 

@@ -9,6 +9,9 @@ export default function RootLayout() {
     <AppProviders>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="achievements" />
+        <Stack.Screen name="user/[id]" />
         <Stack.Screen name="book/[id]" />
         <Stack.Screen name="challenge" />
         <Stack.Screen name="genres" />
