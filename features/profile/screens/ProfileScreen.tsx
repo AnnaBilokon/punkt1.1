@@ -334,7 +334,7 @@ export const ProfileScreen = memo(() => {
   const updateProfile = useProfileStore((s) => s.updateProfile);
 
 
-  const { data: profile } = useProfile(user?.id ?? null);
+  const { data: profile } = useProfile(user?.id ?? null, user?.name);
   const { books, booksRead, isFetching, journalCount, memberSince, reReadsCount, reviewsCount, xp } = useProfileStats();
   const { data: streakData } = useStreak(user?.id ?? null);
   const achievements = useAchievements({

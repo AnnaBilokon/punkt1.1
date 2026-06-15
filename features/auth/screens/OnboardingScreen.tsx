@@ -42,9 +42,9 @@ export const OnboardingScreen = memo(() => {
 
   const complete = async () => {
     setSaving(true);
-    if (user && selected.size > 0) {
+    if (user) {
       try {
-        await profileService.updateGenres(user.id, [...selected]);
+        await profileService.initProfile(user.id, user.name ?? '', [...selected]);
       } catch {
         // non-critical — can be set later in Profile
       }

@@ -32,6 +32,12 @@ const TABS: TabConfig[] = [
     name: 'library',
   },
   {
+    activeIcon: 'people',
+    inactiveIcon: 'people-outline',
+    label: 'Friends',
+    name: 'friends',
+  },
+  {
     activeIcon: 'person-circle',
     inactiveIcon: 'person-circle-outline',
     label: 'Profile',
@@ -115,7 +121,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="discover" />
       <Tabs.Screen name="library" />
       <Tabs.Screen name="profile" />
-      <Tabs.Screen name="friends" options={{ href: null }} />
+      <Tabs.Screen name="friends" />
       <Tabs.Screen name="messages" options={{ href: null }} />
     </Tabs>
   );
