@@ -22,6 +22,7 @@ type UserBookRow = {
   publisher: string | null;
   rating: number;
   review: string | null;
+  review_spoiler: boolean | null;
   started_at: string | null;
   status: BookStatus | null;
   tags: string[] | null;
@@ -49,6 +50,7 @@ const rowToBook = (row: UserBookRow): Book => ({
   publishedYear: row.published_year ?? 0,
   ...(row.publisher ? { publisher: row.publisher } : {}),
   ...(row.review ? { review: row.review } : {}),
+  ...(row.review_spoiler ? { reviewSpoiler: row.review_spoiler } : {}),
   rating: row.rating,
   ...(row.started_at ? { startedAt: row.started_at } : {}),
   status: row.status,
@@ -175,6 +177,7 @@ export const bookRepository = {
     if ('startedAt' in updates) row['started_at'] = updates.startedAt;
     if ('finishedAt' in updates) row['finished_at'] = updates.finishedAt;
     if ('review' in updates) row['review'] = updates.review;
+    if ('reviewSpoiler' in updates) row['review_spoiler'] = updates.reviewSpoiler ?? false;
     if ('note' in updates) row['note'] = updates.note;
     if ('boughtAt' in updates) row['bought_at'] = updates.boughtAt;
     if ('dnfPage' in updates) row['dnf_page'] = updates.dnfPage ?? null;

@@ -22,6 +22,7 @@ export type Book = {
   publisher?: string;
   rating: number;
   review?: string;
+  reviewSpoiler?: boolean;
   startedAt?: string;
   status: BookStatus | null;
   tags?: string[];
@@ -39,6 +40,7 @@ export type ReadingDataUpdate = {
   note?: string | null;
   progress?: number;
   review?: string | null;
+  reviewSpoiler?: boolean | null;
   startedAt?: string | null;
   status?: BookStatus | null;
   tags?: string[];
