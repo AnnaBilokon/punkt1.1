@@ -255,6 +255,7 @@ function MyReadingTab({
     savedBook?.format,
   );
   const [review, setReview] = useState(savedBook?.review ?? '');
+  const [reviewSpoiler, setReviewSpoiler] = useState(savedBook?.reviewSpoiler ?? false);
   const [note, setNote] = useState(savedBook?.note ?? '');
   const [boughtAt, setBoughtAt] = useState(
     savedBook?.boughtAt ? isoToDisplay(savedBook.boughtAt) : '',
@@ -343,6 +344,7 @@ function MyReadingTab({
               )
             : 0,
         review: review.trim() || null,
+        reviewSpoiler: review.trim() ? reviewSpoiler : false,
         startedAt: displayToIso(startedAt),
         tags,
         ...(format !== undefined ? { format } : {}),
@@ -524,6 +526,23 @@ function MyReadingTab({
             style={{ height: 110, textAlignVertical: 'top' }}
             value={review}
           />
+          <Pressable
+            onPress={() => setReviewSpoiler((v) => !v)}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, alignSelf: 'flex-start' }}
+          >
+            <View style={{
+              width: 18, height: 18, borderRadius: 4,
+              borderWidth: 1.5,
+              borderColor: reviewSpoiler ? BRAND : '#c0c0c0',
+              backgroundColor: reviewSpoiler ? BRAND : 'transparent',
+              alignItems: 'center', justifyContent: 'center',
+            }}>
+              {reviewSpoiler && <Ionicons name="checkmark" size={12} color="#fff" />}
+            </View>
+            <Text style={{ fontSize: 12, color: reviewSpoiler ? BRAND : '#888' }}>
+              Mark as spoiler
+            </Text>
+          </Pressable>
         </View>
 
         {/* Format */}
@@ -800,6 +819,7 @@ export function BookDetailScreen({
   // before useUserBooks finishes its first load in this component instance
   const myRating = savedBook?.myRating ?? book.myRating;
   const userReview = savedBook?.review ?? book.review;
+  const userReviewSpoiler = savedBook?.reviewSpoiler ?? false;
   const isCommunityBook = book.id.startsWith('custom-');
 
   const removeBook = useBookStore((s) => s.removeBook);
@@ -1410,9 +1430,16 @@ export function BookDetailScreen({
                       }}
                     >
                       <View className="mb-3 flex-row items-center justify-between">
-                        <Text className="text-[13px] font-semibold text-[#15151e]">
-                          My Review
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+                          <Text className="text-[13px] font-semibold text-[#15151e]">
+                            My Review
+                          </Text>
+                          {userReviewSpoiler && (
+                            <View style={{ paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: '#fef3c7' }}>
+                              <Text style={{ fontSize: 10, fontWeight: '600', color: '#92400e' }}>SPOILER</Text>
+                            </View>
+                          )}
+                        </View>
                         {myRating ? <StaticStars rating={myRating} /> : null}
                       </View>
                       {userReview ? (
