@@ -16,7 +16,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/atoms/Text';
 import { AppDialog, type DialogButton } from '@/components/molecules/AppDialog';
@@ -48,7 +48,7 @@ type BookDetailScreenProps = {
   initialTab?: Tab;
 };
 
-const BRAND = '#7851A9';
+const BRAND = '#c1eeff';
 
 const ExpandableText = memo(
   ({
@@ -84,7 +84,7 @@ const ExpandableText = memo(
         </Text>
         {overflows && (
           <Pressable hitSlop={8} onPress={() => setExpanded((v) => !v)}>
-            <Text className="mt-1 text-[12px] font-medium text-[#7851A9]">
+            <Text className="mt-1 text-[12px] font-medium text-[#655356]">
               {expanded ? 'Show less' : 'Read more'}
             </Text>
           </Pressable>
@@ -133,13 +133,20 @@ const displayToIso = (display: string): string | null => {
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
     <View className="gap-0.5">
-      <Text className="text-[12px] font-bold text-[#15151e]">{label}</Text>
-      <Text className="text-[12px] text-[#15151e]">{value}</Text>
+      <Text className="text-[12px] font-bold text-[#28231c]">{label}</Text>
+      <Text className="text-[12px] text-[#28231c]">{value}</Text>
     </View>
   );
 }
 
 function StaticStars({ rating }: { rating: number }) {
+  if (!rating) {
+    return (
+      <View style={{ alignSelf: 'flex-start', backgroundColor: '#f0ece8', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 }}>
+        <Text style={{ fontSize: 11, color: '#a09090' }}>No reviews yet</Text>
+      </View>
+    );
+  }
   const full = Math.round(rating);
   return (
     <View className="flex-row items-center gap-1">
@@ -191,9 +198,9 @@ function DateField({
 }) {
   return (
     <View className="flex-1 gap-1.5">
-      <Text className="text-[12px] font-semibold text-[#15151e]">{label}</Text>
+      <Text className="text-[12px] font-semibold text-[#28231c]">{label}</Text>
       <Pressable
-        className="flex-row items-center rounded-[8px] border border-[#d9d9d9] bg-[#f9f9f9] px-3"
+        className="flex-row items-center rounded-[8px] border border-[#d9d9d9] bg-[#FFFFFFBD] px-3"
         onPress={onPress}
         style={{ height: 44 }}
       >
@@ -313,7 +320,7 @@ function MyReadingTab({
           onPress={onAddToLibrary}
           style={{ backgroundColor: BRAND }}
         >
-          <Text className="text-[13px] font-semibold text-white">
+          <Text className="text-[13px] font-semibold text-[#070707]">
             Add to Library
           </Text>
         </Pressable>
@@ -377,18 +384,18 @@ function MyReadingTab({
       <View className="gap-5 px-5 pb-6 pt-1">
         {/* Rate */}
         <View className="gap-2">
-          <Text className="text-[13px] font-semibold text-[#15151e]">Rate</Text>
+          <Text className="text-[13px] font-semibold text-[#28231c]">Rate</Text>
           <InteractiveStars onChange={setMyRating} value={myRating} />
         </View>
 
         {/* Pages read */}
         <View className="gap-1.5">
-          <Text className="text-[13px] font-semibold text-[#15151e]">
+          <Text className="text-[13px] font-semibold text-[#28231c]">
             Pages read
           </Text>
           <View className="flex-row items-center gap-3">
             <TextInput
-              className="flex-1 rounded-[8px] border border-[#d9d9d9] bg-[#f9f9f9] px-3 text-[14px] text-black"
+              className="flex-1 rounded-[8px] border border-[#d9d9d9] bg-[#FFFFFFBD] px-3 text-[14px] text-black"
               keyboardType="number-pad"
               maxLength={5}
               onChangeText={setPagesRead}
@@ -416,7 +423,7 @@ function MyReadingTab({
               </Text>
             </View>
             <View className="gap-1.5">
-              <Text className="text-[12px] font-semibold text-[#15151e]">
+              <Text className="text-[12px] font-semibold text-[#28231c]">
                 Stopped at page
               </Text>
               <View className="flex-row items-center gap-3">
@@ -436,9 +443,9 @@ function MyReadingTab({
               </View>
             </View>
             <View className="gap-1.5">
-              <Text className="text-[12px] font-semibold text-[#15151e]">
+              <Text className="text-[12px] font-semibold text-[#28231c]">
                 Reason{' '}
-                <Text className="font-normal text-[#9b9b9b]">(optional)</Text>
+                <Text className="font-normal text-[#655356]">(optional)</Text>
               </Text>
               <TextInput
                 className="rounded-[8px] border border-[#d9d9d9] bg-white px-3 pt-2.5 text-[13px] text-black"
@@ -486,7 +493,7 @@ function MyReadingTab({
                       hitSlop={12}
                       onPress={() => setActivePicker(null)}
                     >
-                      <Text className="text-[15px] font-semibold text-[#7851A9]">
+                      <Text className="text-[15px] font-semibold text-[#655356]">
                         Done
                       </Text>
                     </Pressable>
@@ -513,11 +520,11 @@ function MyReadingTab({
 
         {/* Review */}
         <View className="gap-1.5">
-          <Text className="text-[13px] font-semibold text-[#15151e]">
+          <Text className="text-[13px] font-semibold text-[#28231c]">
             Review
           </Text>
           <TextInput
-            className="rounded-[8px] border border-[#d9d9d9] bg-[#f9f9f9] px-3 pt-2.5 text-[13px] text-black"
+            className="rounded-[8px] border border-[#d9d9d9] bg-[#FFFFFFBD] px-3 pt-2.5 text-[13px] text-black"
             multiline
             numberOfLines={4}
             onChangeText={setReview}
@@ -533,7 +540,7 @@ function MyReadingTab({
             <View style={{
               width: 18, height: 18, borderRadius: 4,
               borderWidth: 1.5,
-              borderColor: reviewSpoiler ? BRAND : '#c0c0c0',
+              borderColor: reviewSpoiler ? BRAND : '#655356',
               backgroundColor: reviewSpoiler ? BRAND : 'transparent',
               alignItems: 'center', justifyContent: 'center',
             }}>
@@ -547,11 +554,11 @@ function MyReadingTab({
 
         {/* Format */}
         <View className="gap-1.5">
-          <Text className="text-[13px] font-semibold text-[#15151e]">
+          <Text className="text-[13px] font-semibold text-[#28231c]">
             Format
           </Text>
           <View
-            className="flex-row rounded-[8px] border border-[#d9d9d9] bg-[#f9f9f9]"
+            className="flex-row rounded-[8px] border border-[#d9d9d9] bg-[#FFFFFFBD]"
             style={{ height: 40 }}
           >
             {FORMATS.map((f, index) => {
@@ -572,7 +579,7 @@ function MyReadingTab({
                   }
                 >
                   <Text
-                    className={`text-[11px] font-medium ${isActive ? 'text-white' : 'text-[#444]'}`}
+                    className={`text-[11px] font-medium ${isActive ? 'text-[#070707]' : 'text-[#444]'}`}
                   >
                     {f.label}
                   </Text>
@@ -600,19 +607,19 @@ function MyReadingTab({
           const summary = parts.filter(Boolean).join(' · ');
           return (
             <View className="gap-2">
-              <Text className="text-[13px] font-semibold text-[#15151e]">
+              <Text className="text-[13px] font-semibold text-[#28231c]">
                 Bookshelves
               </Text>
               <Pressable
-                className="flex-row items-center gap-3 rounded-[12px] border border-[#d9d9d9] bg-[#f9f9f9] px-5 py-4"
+                className="flex-row items-center gap-3 rounded-[12px] border border-[#d9d9d9] bg-[#FFFFFFBD] px-5 py-4"
                 onPress={() => setAddToShelfVisible(true)}
                 style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
               >
-                <Ionicons color="#7851A9" name="bookmark-outline" size={18} />
+                <Ionicons color="#655356" name="bookmark-outline" size={18} />
                 <Text
                   className="flex-1 text-[14px]"
                   numberOfLines={1}
-                  style={{ color: summary ? '#15151e' : '#9b9b9b' }}
+                  style={{ color: summary ? '#28231c' : '#655356' }}
                 >
                   {summary || 'Add to bookshelves…'}
                 </Text>
@@ -624,9 +631,9 @@ function MyReadingTab({
 
         {/* Note */}
         <View className="gap-1.5">
-          <Text className="text-[13px] font-semibold text-[#15151e]">Note</Text>
+          <Text className="text-[13px] font-semibold text-[#28231c]">Note</Text>
           <TextInput
-            className="rounded-[8px] border border-[#d9d9d9] bg-[#f9f9f9] px-3 pt-2.5 text-[13px] text-black"
+            className="rounded-[8px] border border-[#d9d9d9] bg-[#FFFFFFBD] px-3 pt-2.5 text-[13px] text-black"
             multiline
             numberOfLines={3}
             onChangeText={setNote}
@@ -640,18 +647,18 @@ function MyReadingTab({
         {/* Personal details accordion */}
         <View className="overflow-hidden rounded-[12px] border border-[#e8e8e8]">
           <Pressable
-            className="flex-row items-center justify-between bg-[#f9f9f9] px-4 py-3"
+            className="flex-row items-center justify-between bg-[#FFFFFFBD] px-4 py-3"
             onPress={() => setPersonalOpen((v) => !v)}
             style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
           >
             <View className="flex-row items-center gap-2">
-              <Ionicons color="#7851A9" name="bookmark-outline" size={16} />
-              <Text className="text-[13px] font-semibold text-[#15151e]">
+              <Ionicons color="#655356" name="bookmark-outline" size={16} />
+              <Text className="text-[13px] font-semibold text-[#28231c]">
                 Personal details
               </Text>
             </View>
             <Ionicons
-              color="#9b9b9b"
+              color="#655356"
               name={personalOpen ? 'chevron-up' : 'chevron-down'}
               size={16}
             />
@@ -668,7 +675,7 @@ function MyReadingTab({
 
               {/* How did you find it */}
               <View className="gap-2">
-                <Text className="text-[12px] font-semibold text-[#15151e]">
+                <Text className="text-[12px] font-semibold text-[#28231c]">
                   How did you find it?
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
@@ -679,11 +686,11 @@ function MyReadingTab({
                         key={tag.value}
                         className="flex-row items-center gap-1 rounded-full px-3 py-1.5"
                         onPress={() => toggleTag(tag.value)}
-                        style={{ backgroundColor: active ? '#7851A9' : '#f1edf8' }}
+                        style={{ backgroundColor: active ? '#c1eeff' : '#e2f5ff' }}
                       >
                         <Text className="text-[12px]">{tag.emoji}</Text>
                         <Text
-                          className={`text-[12px] font-medium ${active ? 'text-white' : 'text-[#7851A9]'}`}
+                          className={`text-[12px] font-medium ${active ? 'text-[#070707]' : 'text-[#655356]'}`}
                         >
                           {tag.label}
                         </Text>
@@ -695,10 +702,10 @@ function MyReadingTab({
                       key={t}
                       className="flex-row items-center gap-1 rounded-full px-3 py-1.5"
                       onPress={() => toggleTag(t)}
-                      style={{ backgroundColor: '#7851A9' }}
+                      style={{ backgroundColor: '#c1eeff' }}
                     >
-                      <Text className="text-[12px] font-medium text-white">{t}</Text>
-                      <Ionicons color="rgba(255,255,255,0.7)" name="close" size={12} />
+                      <Text className="text-[12px] font-medium text-[#070707]">{t}</Text>
+                      <Ionicons color="rgba(7,7,7,0.5)" name="close" size={12} />
                     </Pressable>
                   ))}
                 </View>
@@ -706,7 +713,7 @@ function MyReadingTab({
                   <View className="flex-row items-center gap-2">
                     <TextInput
                       autoFocus
-                      className="flex-1 rounded-full border border-[#d9d9d9] bg-[#f9f9f9] px-3 text-[13px] text-black"
+                      className="flex-1 rounded-full border border-[#d9d9d9] bg-[#FFFFFFBD] px-3 text-[13px] text-black"
                       maxLength={30}
                       onChangeText={setCustomTagInput}
                       onSubmitEditing={() => {
@@ -725,7 +732,7 @@ function MyReadingTab({
                       value={customTagInput}
                     />
                     <Pressable
-                      className="items-center justify-center rounded-full bg-[#7851A9]"
+                      className="items-center justify-center rounded-full bg-[#c1eeff]"
                       onPress={() => {
                         const t = customTagInput.trim();
                         if (t && !tags.includes(t)) setTags((prev) => [...prev, t]);
@@ -742,8 +749,8 @@ function MyReadingTab({
                     className="flex-row items-center gap-1 self-start rounded-full border border-dashed border-[#c0b4d8] px-3 py-1.5"
                     onPress={() => setShowCustomTagInput(true)}
                   >
-                    <Ionicons color="#9b9b9b" name="add" size={14} />
-                    <Text className="text-[12px] text-[#9b9b9b]">Custom tag</Text>
+                    <Ionicons color="#655356" name="add" size={14} />
+                    <Text className="text-[12px] text-[#655356]">Custom tag</Text>
                   </Pressable>
                 )}
               </View>
@@ -767,7 +774,7 @@ function MyReadingTab({
             onPress={() => void handleSave()}
             style={{ backgroundColor: BRAND, opacity: saving ? 0.6 : 1 }}
           >
-            <Text className="text-[14px] font-semibold text-white">
+            <Text className="text-[14px] font-semibold text-[#070707]">
               {saving ? 'Saving…' : 'Save'}
             </Text>
           </Pressable>
@@ -808,8 +815,10 @@ export function BookDetailScreen({
 }: BookDetailScreenProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const [infoSubTab, setInfoSubTab] = useState<InfoSubTab>('about');
+  const [fabOpen, setFabOpen] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const user = useAuthStore((s) => s.user);
   const { data: userBooks = [] } = useUserBooks(user?.id ?? null);
@@ -1044,192 +1053,164 @@ export function BookDetailScreen({
   };
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'my-reading', label: 'My Reading' },
     { id: 'info', label: 'Book Info' },
+    { id: 'my-reading', label: 'My Reading' },
   ];
 
+  const HERO_HEIGHT = 370;
+
   return (
-    <SafeAreaView className="flex-1 bg-[#fdfdfd]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-[#F8F6F4]" edges={['top']}>
+
+      {/* ── Fixed cover layer (behind scroll) ──────────────────────────── */}
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: HERO_HEIGHT, backgroundColor: '#F8F6F4', alignItems: 'center', paddingTop: 50 }}>
+        <Pressable
+          disabled={!isInLibrary}
+          onPress={() => {
+            setCoverInput((savedBook ?? book).coverImage ?? '');
+            setCoverModalVisible(true);
+          }}
+          style={{ position: 'relative' }}
+        >
+          {(() => {
+            const displayCover = localCoverPreview ?? (savedBook ?? book).coverImage;
+            return displayCover ? (
+              <View style={{
+                width: 200, height: 294, borderRadius: 14,
+                shadowColor: '#000', shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: 0.28, shadowRadius: 16, elevation: 10,
+              }}>
+                <Image
+                  resizeMode="cover"
+                  source={{ uri: displayCover }}
+                  style={{ width: 200, height: 294, borderRadius: 14, backgroundColor: '#e2f5ff' }}
+                />
+              </View>
+            ) : (
+              <View style={{
+                width: 200, height: 294, borderRadius: 14,
+                backgroundColor: '#e2f5ff',
+                alignItems: 'center', justifyContent: 'center',
+                shadowColor: '#000', shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: 0.18, shadowRadius: 16, elevation: 10,
+              }}>
+                <Ionicons color="#655356" name="book-outline" size={64} />
+              </View>
+            );
+          })()}
+          {coverSaving && (
+            <View style={{
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.35)', borderRadius: 14,
+              alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Ionicons color="white" name="cloud-upload-outline" size={28} />
+            </View>
+          )}
+          {isInLibrary && !coverSaving && (
+            <View style={{
+              position: 'absolute', bottom: 8, right: 8,
+              backgroundColor: '#c1eeff', borderRadius: 14, padding: 6,
+            }}>
+              <Ionicons color="#070707" name="camera-outline" size={14} />
+            </View>
+          )}
+        </Pressable>
+      </View>
+
+      {/* ── Scrollable content (slides over cover on scroll) ───────────── */}
       <ScrollView
         bounces={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingTop: HERO_HEIGHT - 50, paddingBottom: 140 }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Back / Edit row */}
-        <View className="flex-row items-center justify-between px-5 py-3">
-          <Pressable
-            accessibilityLabel="Go back"
-            accessibilityRole="button"
-            className="flex-row items-center gap-1"
-            onPress={() => router.back()}
-          >
-            <Ionicons color="#212121" name="chevron-back" size={18} />
-            <Text className="text-[11px] text-black">back</Text>
-          </Pressable>
-          {isCommunityBook && (
-            <View className="flex-row items-center gap-4">
-              <Pressable
-                accessibilityLabel="Edit book"
-                accessibilityRole="button"
-                hitSlop={12}
-                onPress={() => setEditModalVisible(true)}
-              >
-                <Ionicons color={BRAND} name="pencil-outline" size={20} />
-              </Pressable>
-              <Pressable
-                accessibilityLabel="Delete book"
-                accessibilityRole="button"
-                hitSlop={12}
-                onPress={handleDeleteBook}
-              >
-                <Ionicons color="#e53935" name="trash-outline" size={20} />
-              </Pressable>
-            </View>
-          )}
-        </View>
+        <View style={{ backgroundColor: '#F8F6F4', borderTopLeftRadius: 28, borderTopRightRadius: 28 }}>
+          {/* Drag handle */}
+          <View style={{ alignItems: 'center', paddingTop: 10, paddingBottom: 6 }}>
+            <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: 'rgba(40,35,28,0.15)' }} />
+          </View>
 
-        {/* Book header */}
-        <View className="flex-row gap-4 px-5 pb-3">
-          <Pressable
-            disabled={!isInLibrary}
-            onPress={() => {
-              setCoverInput((savedBook ?? book).coverImage ?? '');
-              setCoverModalVisible(true);
-            }}
-            style={{ position: 'relative' }}
-          >
-            {(() => {
-              const displayCover = localCoverPreview ?? (savedBook ?? book).coverImage;
-              return displayCover ? (
-                <Image
-                  className="h-[240px] w-[160px] rounded-[12px]"
-                  resizeMode="contain"
-                  source={{ uri: displayCover }}
-                  style={{
-                    backgroundColor: '#f1edf8',
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 4,
-                  }}
-                />
-              ) : (
-                <View className="h-[240px] w-[160px] items-center justify-center rounded-[12px] bg-[#f1edf8]">
-                  <Ionicons color="#7851A9" name="book-outline" size={48} />
-                </View>
-              );
-            })()}
-            {coverSaving && (
-              <View
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  backgroundColor: 'rgba(0,0,0,0.35)',
-                  borderRadius: 12,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons color="white" name="cloud-upload-outline" size={28} />
-              </View>
-            )}
-            {isInLibrary && !coverSaving && (
-              <View
-                style={{
-                  position: 'absolute',
-                  bottom: 6,
-                  right: 6,
-                  backgroundColor: '#7851A9',
-                  borderRadius: 12,
-                  padding: 5,
-                }}
-              >
-                <Ionicons color="white" name="camera-outline" size={13} />
-              </View>
-            )}
-          </Pressable>
-          <View className="flex-1 justify-start gap-2 pt-1">
-            <Text className="text-[16px] font-semibold leading-tight text-black">
-              {book.title}
-            </Text>
-            <Text className="text-[14px] text-[#6d7a88]">by {book.author}</Text>
+        {/* ── Title + Author + meta ──────────────────────────────────────── */}
+        <View style={{ paddingHorizontal: 20, paddingBottom: 20, gap: 6 }}>
+          <Text style={{ fontSize: 24, fontWeight: '800', color: '#070707', lineHeight: 30, letterSpacing: -0.4 }}>
+            {book.title}
+          </Text>
+          <Text style={{ fontSize: 15, color: '#655356' }}>
+            {book.author}
+          </Text>
+          <View style={{ marginTop: 2 }}>
             {myRating ? (
-              <View className="gap-0.5">
+              <View style={{ gap: 2 }}>
                 <StaticStars rating={myRating} />
-                <Text className="text-[11px] text-[#9b9b9b]">My rating</Text>
+                <Text style={{ fontSize: 11, color: '#655356' }}>My rating</Text>
               </View>
             ) : (
               <StaticStars rating={book.rating} />
             )}
+          </View>
+          {/* Meta chips */}
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
             {book.pages > 0 && (
-              <Text className="text-[12px] text-[#212121]">
-                {book.pages} pages
-              </Text>
+              <View style={{ backgroundColor: '#e2f5ff', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 }}>
+                <Text style={{ fontSize: 12, color: '#655356' }}>{book.pages} pages</Text>
+              </View>
             )}
             {book.publishedYear > 0 && (
-              <Text className="text-[12px] text-[#212121]">
-                Published {book.publishedYear}
-              </Text>
+              <View style={{ backgroundColor: '#F2EEE9', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 }}>
+                <Text style={{ fontSize: 12, color: '#655356' }}>{book.publishedYear}</Text>
+              </View>
             )}
-            {book.genres.length > 0 && (
-              <Text className="text-[12px] text-[#212121]">
-                {book.genres.join(', ')}
-              </Text>
-            )}
-            <Pressable
-              accessibilityLabel={isInLibrary ? 'In Library' : 'Add to Library'}
-              accessibilityRole="button"
-              className="mt-1 items-center justify-center rounded-[8px] py-2"
-              onPress={() =>
-                isInLibrary ? handleRemoveFromLibrary() : handleAddToLibrary()
-              }
-              style={
-                isInLibrary
-                  ? {
-                      backgroundColor: '#fff',
-                      borderWidth: 1,
-                      borderColor: BRAND,
-                    }
-                  : { backgroundColor: BRAND }
-              }
-            >
-              <Text
-                className={`text-[13px] font-bold ${isInLibrary ? 'text-[#7851A9]' : 'text-white'}`}
-              >
-                {isInLibrary ? '✓ In Library' : '+ Add to Library'}
-              </Text>
-            </Pressable>
+            {book.genres.slice(0, 2).map((g) => (
+              <View key={g} style={{ backgroundColor: '#F2EEE9', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 }}>
+                <Text style={{ fontSize: 12, color: '#655356' }}>{g}</Text>
+              </View>
+            ))}
           </View>
+          {/* Full-width CTA */}
+          <Pressable
+            accessibilityLabel={isInLibrary ? 'In Library' : 'Add to Library'}
+            accessibilityRole="button"
+            onPress={() => isInLibrary ? handleRemoveFromLibrary() : handleAddToLibrary()}
+            style={({ pressed }) => ({
+              marginTop: 12,
+              paddingVertical: 16,
+              borderRadius: 14,
+              alignItems: 'center',
+              backgroundColor: BRAND,
+              opacity: pressed ? 0.8 : 1,
+            })}
+          >
+            <Text style={{ fontSize: 17, fontWeight: '700', color: '#070707' }}>
+              {isInLibrary ? '✓ In Library' : 'Add to Library'}
+            </Text>
+          </Pressable>
         </View>
 
-        {/* 2-tab bar */}
-        <View
-          className="mx-5 mb-4 flex-row rounded-[8px] border border-[#d9d9d9] bg-[#f9f9f9]"
-          style={{ height: 41 }}
-        >
-          {tabs.map((tab, index) => {
+        {/* ── Tab bar ───────────────────────────────────────────────────── */}
+        <View style={{
+          flexDirection: 'row',
+          marginHorizontal: 20,
+          marginBottom: 16,
+          backgroundColor: '#F2EEE9',
+          borderRadius: 13,
+          padding: 4,
+        }}>
+          {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <Pressable
                 key={tab.id}
                 accessibilityLabel={tab.label}
                 accessibilityRole="tab"
-                className="flex-1 items-center justify-center"
                 onPress={() => setActiveTab(tab.id)}
-                style={
-                  isActive && {
-                    backgroundColor: '#a0c4a7',
-                    borderTopLeftRadius: index === 0 ? 7 : 0,
-                    borderBottomLeftRadius: index === 0 ? 7 : 0,
-                    borderTopRightRadius: index === 1 ? 7 : 0,
-                    borderBottomRightRadius: index === 1 ? 7 : 0,
-                  }
-                }
+                style={{
+                  flex: 1, alignItems: 'center', justifyContent: 'center',
+                  paddingVertical: 9, borderRadius: 10,
+                  backgroundColor: isActive ? '#513b3c' : 'transparent',
+                }}
               >
-                <Text
-                  className={`text-[14px] ${isActive ? 'text-white' : 'text-[#212121]'}`}
-                >
+                <Text style={{ fontSize: 14, fontWeight: isActive ? '600' : '400', color: isActive ? '#ffffff' : '#655356' }}>
                   {tab.label}
                 </Text>
               </Pressable>
@@ -1241,45 +1222,35 @@ export function BookDetailScreen({
         {activeTab === 'info' && (
           <>
             {/* Sub-tab bar: About / Reviews / Similar */}
-            <View
-              className="mx-5 mb-4 flex-row rounded-[8px] border border-[#d9d9d9] bg-[#f9f9f9]"
-              style={{ height: 38 }}
-            >
-              {(['about', 'reviews', 'similar'] as InfoSubTab[]).map(
-                (sub, index) => {
-                  const isActive = infoSubTab === sub;
-                  const label =
-                    sub === 'similar'
-                      ? 'Similar ✨'
-                      : sub.charAt(0).toUpperCase() + sub.slice(1);
-                  return (
-                    <Pressable
-                      key={sub}
-                      accessibilityLabel={label}
-                      accessibilityRole="tab"
-                      className="flex-1 items-center justify-center"
-                      onPress={() => setInfoSubTab(sub)}
-                      style={
-                        isActive && {
-                          backgroundColor: '#a0c4a7',
-                          borderTopLeftRadius: index === 0 ? 7 : 0,
-                          borderBottomLeftRadius: index === 0 ? 7 : 0,
-                          borderTopRightRadius: index === 2 ? 7 : 0,
-                          borderBottomRightRadius: index === 2 ? 7 : 0,
-                        }
-                      }
-                    >
-                      <Text
-                        className={`text-[13px] ${
-                          isActive ? 'text-white' : 'text-[#212121]'
-                        }`}
-                      >
-                        {label}
-                      </Text>
-                    </Pressable>
-                  );
-                },
-              )}
+            <View style={{
+              flexDirection: 'row',
+              marginHorizontal: 20,
+              marginBottom: 16,
+              backgroundColor: '#F2EEE9',
+              borderRadius: 13,
+              padding: 4,
+            }}>
+              {(['about', 'reviews', 'similar'] as InfoSubTab[]).map((sub) => {
+                const isActive = infoSubTab === sub;
+                const label = sub === 'similar' ? 'Similar ✨' : sub.charAt(0).toUpperCase() + sub.slice(1);
+                return (
+                  <Pressable
+                    key={sub}
+                    accessibilityLabel={label}
+                    accessibilityRole="tab"
+                    onPress={() => setInfoSubTab(sub)}
+                    style={{
+                      flex: 1, alignItems: 'center', justifyContent: 'center',
+                      paddingVertical: 8, borderRadius: 10,
+                      backgroundColor: isActive ? '#513b3c' : 'transparent',
+                    }}
+                  >
+                    <Text style={{ fontSize: 13, fontWeight: isActive ? '600' : '400', color: isActive ? '#ffffff' : '#655356' }}>
+                      {label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
 
             {/* About sub-tab */}
@@ -1287,8 +1258,9 @@ export function BookDetailScreen({
               <>
                 {/* Description card */}
                 <View
-                  className="mx-5 mb-4 rounded-[10px] border border-[#d9d9d9] bg-[#f9f9f9] p-5"
+                  className="mx-5 mb-4 rounded-[10px] border border-[#d9d9d9] p-5"
                   style={{
+                    backgroundColor: 'rgba(255,255,255,0.74)',
                     shadowColor: '#000',
                     shadowOffset: { width: 0, height: 0 },
                     shadowOpacity: 0.16,
@@ -1296,11 +1268,11 @@ export function BookDetailScreen({
                     elevation: 2,
                   }}
                 >
-                  <Text className="mb-2 text-[14px] font-semibold text-[#15151e]">
+                  <Text className="mb-2 text-[14px] font-semibold text-[#28231c]">
                     Description
                   </Text>
                   <ExpandableText
-                    className="mb-2 text-[12px] leading-[16px] text-[#15151e]"
+                    className="mb-2 text-[12px] leading-[16px] text-[#28231c]"
                     text={book.description || 'No description available.'}
                   />
                   <View className="flex-row gap-8">
@@ -1339,18 +1311,18 @@ export function BookDetailScreen({
                 {isInLibrary && (
                   <View className="mx-5 mb-4 overflow-hidden rounded-[12px] border border-[#e8e8e8]">
                     <Pressable
-                      className="flex-row items-center justify-between bg-[#f9f9f9] px-4 py-3"
+                      className="flex-row items-center justify-between px-4 py-3"
                       onPress={() => setEditInfoExpanded((v) => !v)}
-                      style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+                      style={({ pressed }) => ({ backgroundColor: 'rgba(255,255,255,0.74)', opacity: pressed ? 0.7 : 1 })}
                     >
                       <View className="flex-row items-center gap-2">
-                        <Ionicons color="#7851A9" name="pencil-outline" size={16} />
-                        <Text className="text-[13px] font-semibold text-[#15151e]">
+                        <Ionicons color="#655356" name="pencil-outline" size={16} />
+                        <Text className="text-[13px] font-semibold text-[#28231c]">
                           Edit book info
                         </Text>
                       </View>
                       <Ionicons
-                        color="#9b9b9b"
+                        color="#655356"
                         name={editInfoExpanded ? 'chevron-up' : 'chevron-down'}
                         size={16}
                       />
@@ -1402,7 +1374,7 @@ export function BookDetailScreen({
                             onPress={() => void handleSaveBookInfo()}
                             style={{ backgroundColor: BRAND, opacity: editSaving ? 0.6 : 1 }}
                           >
-                            <Text className="text-[13px] font-semibold text-white">
+                            <Text className="text-[13px] font-semibold text-[#070707]">
                               {editSaving ? 'Saving…' : 'Save changes'}
                             </Text>
                           </Pressable>
@@ -1420,8 +1392,9 @@ export function BookDetailScreen({
                 {myRating || userReview ? (
                   <View className="mx-5 mb-4 gap-3">
                     <View
-                      className="rounded-[10px] border border-[#d9d9d9] bg-[#f9f9f9] p-4"
+                      className="rounded-[10px] border border-[#d9d9d9] p-4"
                       style={{
+                        backgroundColor: 'rgba(255,255,255,0.74)',
                         elevation: 2,
                         shadowColor: '#000',
                         shadowOffset: { width: 0, height: 0 },
@@ -1431,7 +1404,7 @@ export function BookDetailScreen({
                     >
                       <View className="mb-3 flex-row items-center justify-between">
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-                          <Text className="text-[13px] font-semibold text-[#15151e]">
+                          <Text className="text-[13px] font-semibold text-[#28231c]">
                             My Review
                           </Text>
                           {userReviewSpoiler && (
@@ -1491,7 +1464,110 @@ export function BookDetailScreen({
             userId={user.id}
           />
         )}
+        </View>
       </ScrollView>
+
+      {/* ── Floating back / edit buttons (always on top) ────────────────── */}
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: insets.top + 10, paddingBottom: 8, pointerEvents: 'box-none' }}>
+        <Pressable
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={() => router.back()}
+          style={({ pressed }) => ({
+            flexDirection: 'row', alignItems: 'center', gap: 4,
+            backgroundColor: 'rgba(248,246,244,0.88)', borderRadius: 20,
+            paddingHorizontal: 10, paddingVertical: 6,
+            opacity: pressed ? 0.6 : 1,
+          })}
+        >
+          <Ionicons color="#28231c" name="chevron-back" size={20} />
+          <Text style={{ fontSize: 14, fontWeight: '500', color: '#28231c' }}>back</Text>
+        </Pressable>
+        {isCommunityBook && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, pointerEvents: 'auto' }}>
+            <Pressable
+              accessibilityLabel="Edit book"
+              hitSlop={12}
+              onPress={() => setEditModalVisible(true)}
+              style={{ backgroundColor: 'rgba(248,246,244,0.88)', borderRadius: 18, padding: 7 }}
+            >
+              <Ionicons color="#513b3c" name="pencil-outline" size={18} />
+            </Pressable>
+            <Pressable
+              accessibilityLabel="Delete book"
+              hitSlop={12}
+              onPress={handleDeleteBook}
+              style={{ backgroundColor: 'rgba(248,246,244,0.88)', borderRadius: 18, padding: 7 }}
+            >
+              <Ionicons color="#e53935" name="trash-outline" size={18} />
+            </Pressable>
+          </View>
+        )}
+      </View>
+
+      {/* ── Speed-dial pills ──────────────────────────────────────────── */}
+      {fabOpen && (
+        <View style={{
+          position: 'absolute',
+          left: 0, right: 0,
+          bottom: 115 + insets.bottom,
+          alignItems: 'center',
+          gap: 10,
+          zIndex: 20,
+        }}>
+          {([
+            { icon: 'book-outline' as const,       label: 'Log pages',    tab: 'my-reading' as Tab, sub: undefined },
+            { icon: 'star-outline' as const,        label: 'Write review', tab: 'info' as Tab,       sub: 'reviews' as InfoSubTab },
+            { icon: 'chatbubble-outline' as const,  label: 'Add quote',    tab: 'my-reading' as Tab, sub: undefined },
+          ]).map(({ icon, label, tab, sub }) => (
+            <Pressable
+              key={label}
+              onPress={() => {
+                setActiveTab(tab);
+                if (sub) setInfoSubTab(sub);
+                setFabOpen(false);
+              }}
+              style={({ pressed }) => ({
+                flexDirection: 'row', alignItems: 'center', gap: 8,
+                backgroundColor: '#28231c', borderRadius: 22,
+                paddingVertical: 10, paddingHorizontal: 16,
+                opacity: pressed ? 0.8 : 1,
+                shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.35, shadowRadius: 8, elevation: 12,
+              })}
+            >
+              <Ionicons color="#c1eeff" name={icon} size={16} />
+              <Text style={{ fontSize: 13, fontWeight: '600', color: '#fff' }}>{label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+      {/* FAB button wrapper */}
+      <View style={{
+        position: 'absolute',
+        left: 0, right: 0,
+        bottom: 48 + insets.bottom,
+        alignItems: 'center',
+        zIndex: 20,
+        pointerEvents: 'box-none',
+      }}>
+        <Pressable
+          accessibilityLabel="Quick actions"
+          onPress={() => setFabOpen((v) => !v)}
+          style={({ pressed }) => ({
+            width: 56, height: 56, borderRadius: 28,
+            backgroundColor: '#28231c',
+            alignItems: 'center', justifyContent: 'center',
+            opacity: pressed ? 0.85 : 1,
+            shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.35, shadowRadius: 10, elevation: 12,
+          })}
+        >
+          <Ionicons color="#c1eeff" name={fabOpen ? 'close' : 'add'} size={28} />
+        </Pressable>
+      </View>
+
       <AppDialog
         buttons={dialog?.buttons ?? []}
         message={dialog?.message}
@@ -1525,7 +1601,7 @@ export function BookDetailScreen({
             className="mx-6 w-full rounded-[16px] bg-white p-5"
             onPress={() => {}}
           >
-            <Text className="mb-4 text-[15px] font-semibold text-[#15151e]">
+            <Text className="mb-4 text-[15px] font-semibold text-[#28231c]">
               Change cover
             </Text>
 
@@ -1535,8 +1611,8 @@ export function BookDetailScreen({
               onPress={() => void pickAndUploadCover()}
               style={{ backgroundColor: BRAND }}
             >
-              <Ionicons color="white" name="images-outline" size={18} />
-              <Text className="text-[13px] font-semibold text-white">
+              <Ionicons color="#070707" name="images-outline" size={18} />
+              <Text className="text-[13px] font-semibold text-[#070707]">
                 Choose from Library
               </Text>
             </Pressable>
@@ -1549,7 +1625,7 @@ export function BookDetailScreen({
             </View>
 
             <TextInput
-              className="rounded-[8px] border border-[#d9d9d9] bg-[#f9f9f9] px-3 text-[13px] text-black"
+              className="rounded-[8px] border border-[#d9d9d9] bg-[#FFFFFFBD] px-3 text-[13px] text-black"
               onChangeText={setCoverInput}
               placeholder="https://…"
               placeholderTextColor="#aaa"
@@ -1574,7 +1650,7 @@ export function BookDetailScreen({
                   opacity: coverSaving || !coverInput.trim() ? 0.4 : 1,
                 }}
               >
-                <Text className="text-[13px] font-semibold text-white">
+                <Text className="text-[13px] font-semibold text-[#070707]">
                   {coverSaving ? 'Saving…' : 'Save URL'}
                 </Text>
               </Pressable>
