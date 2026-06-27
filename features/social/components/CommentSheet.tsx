@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+﻿import { Ionicons } from '@expo/vector-icons';
 import { memo, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -25,7 +25,7 @@ const TEXT_MUTED = '#a8a29d';
 const BG         = '#ffffff';
 const BG_SUBTLE  = '#f7f5f2';
 const DIVIDER    = 'rgba(0,0,0,0.08)';
-const BRAND      = '#7851a9';
+const BRAND      = '#c1eeff';
 
 const PALETTE = [
   { bg: '#e1f5ee', fg: '#085041' },
@@ -210,7 +210,7 @@ export const CommentSheet = memo(({ activityUserId, bookApiId, bookTitle, visibl
           keyboardShouldPersistTaps="handled"
         >
           {isLoading ? (
-            <ActivityIndicator color={BRAND} style={{ marginTop: 24 }} />
+            <ActivityIndicator color="#513b3c" style={{ marginTop: 24 }} />
           ) : !comments.length ? (
             <View style={{ alignItems: 'center', paddingTop: 32, gap: 6 }}>
               <Text style={{ fontSize: 28 }}>💬</Text>

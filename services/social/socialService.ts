@@ -189,7 +189,7 @@ export const socialService = {
     const [profileRes, booksRes, followersRes, followingRes] = await Promise.all([
       supabase
         .from('profiles')
-        .select('id, display_name, avatar_url')
+        .select('id, display_name, avatar_url, bio')
         .eq('id', userId)
         .maybeSingle(),
       supabase
@@ -212,6 +212,7 @@ export const socialService = {
       id: userId,
       displayName: (p?.display_name as string) || 'Reader',
       avatarUrl: (p?.avatar_url as string | null) ?? null,
+      bio: (p?.bio as string | null) ?? null,
       booksRead: booksRes.count ?? 0,
       followersCount: followersRes.count ?? 0,
       followingCount: followingRes.count ?? 0,

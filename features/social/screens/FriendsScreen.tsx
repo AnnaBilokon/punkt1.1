@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+﻿import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { memo, useMemo, useState } from 'react';
@@ -17,39 +17,38 @@ import { CommentSheet } from '@/features/social/components/CommentSheet';
 import { friendActivityQueryKey, useFriendActivity } from '@/features/social/hooks/useFriendActivity';
 import { followersQueryKey, useFollowers } from '@/features/social/hooks/useFollowers';
 import { followingQueryKey, useFollowing } from '@/features/social/hooks/useFollowing';
-import { useMyActivity } from '@/features/social/hooks/useMyActivity';
 import { useNotifications } from '@/features/social/hooks/useNotifications';
 import { socialService } from '@/services/social/socialService';
 import { useAppStore } from '@/store/appStore';
 import { useAuthStore } from '@/store/authStore';
 import type { FriendActivity, PublicProfile } from '@/types';
 
-// ── Design tokens (Figma) ──────────────────────────────────────────────────────
-const TEXT_PRI   = '#1c1714';
-const TEXT_SEC   = '#6b6560';
-const TEXT_MUTED = '#a8a29d';
-const BG         = '#ffffff';
-const BG_SUBTLE  = '#f7f5f2';
-const DIVIDER    = 'rgba(0,0,0,0.08)';
-const STAR_GOLD  = '#ba7517';
-const STAR_EMPTY = '#d3d1c7';
-const FOLLOW_BTN = '#1c1714';
-const FOLLOW_TXT = '#7b6ef6';
-const DANGER     = '#e5484d';
-const BADGE_BG   = '#faeeda';
-const BADGE_BOR  = '#fac775';
-const BADGE_TXT  = '#633806';
+// ── Design tokens ────────────────────────────────────────────────────────────
+const TEXT_PRI   = '#28231c';  // Ebony
+const TEXT_SEC   = '#655356';  // Taupe Grey
+const TEXT_MUTED = '#655356';  // Lilac Ash
+const BG         = '#F8F6F4';  // warm cream background
+const BG_SUBTLE  = '#F2EEE9';
+const DIVIDER    = 'rgba(40,35,28,0.08)';
+const STAR_GOLD  = '#c9a84c';
+const STAR_EMPTY = '#ddd9d3';
+const FOLLOW_BTN = '#c1eeff';  // Periwinkle
+const FOLLOW_TXT = '#28231c';  // dark text ON periwinkle
+const DANGER     = '#c05e5e';
+const BADGE_BG   = '#e2f5ff';  // light periwinkle chip
+const BADGE_BOR  = '#a8d8f0';
+const BADGE_TXT  = '#28231c';
 
-// ── Avatar palette (Figma) ─────────────────────────────────────────────────────
+// ── Avatar palette ────────────────────────────────────────────────────────────
 const PALETTE = [
-  { bg: '#e1f5ee', fg: '#085041' },
-  { bg: '#faeeda', fg: '#633806' },
-  { bg: '#eeedfe', fg: '#3c3489' },
-  { bg: '#e6f1fb', fg: '#185fa5' },
-  { bg: '#fbeaf0', fg: '#72243e' },
-  { bg: '#fcebeb', fg: '#791f1f' },
-  { bg: '#eaf3de', fg: '#3b6d11' },
-  { bg: '#f7f5f2', fg: '#4a4540' },
+  { bg: '#e2f5ff', fg: '#28231c' },  // light blue tint / carbon black
+  { bg: '#F2EEE9', fg: '#655356' },  // cream / taupe grey
+  { bg: '#f5ebe8', fg: '#513b3c' },  // warm peach / chocolate plum
+  { bg: '#f0ebe8', fg: '#655356' },  // warm taupe / taupe grey
+  { bg: '#e8f5ff', fg: '#28231c' },  // sky tint / carbon black
+  { bg: '#ece8e3', fg: '#28231c' },  // warm grey / carbon black
+  { bg: '#f8e8e8', fg: '#513b3c' },  // warm blush / chocolate plum
+  { bg: '#F2EEE9', fg: '#28231c' },  // cream / carbon black
 ];
 
 const pal = (seed: string) =>
@@ -316,7 +315,6 @@ type CommentTarget = { activityUserId: string; bookApiId: string; bookTitle: str
 const ActivityTab = memo(({ userId, onPeople, onComment }: { userId: string; onPeople: () => void; onComment: (t: CommentTarget) => void }) => {
   const router = useRouter();
   const { data: feed = [], isLoading } = useFriendActivity(userId);
-  const { data: myFeed = [] } = useMyActivity(userId);
   const [rxns, setRxns] = useState<Map<string, Rxn>>(new Map());
 
   const getRxn  = (id: string): Rxn => rxns.get(id) ?? { liked: false, count: 0 };
@@ -358,51 +356,31 @@ const ActivityTab = memo(({ userId, onPeople, onComment }: { userId: string; onP
   );
 
   return (
-    <>
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
-        {myFeed.length > 0 && (
-          <View>
-            <SectionLabel label="Your activity" />
-            {myFeed.map((item, i) => {
-              const id = `${item.userId}-${item.bookApiId}`;
-              return (
-                <ActivityCard
-                  key={`mine-${i}`}
-                  item={item}
-                  rxn={getRxn(id)}
-                  onLike={() => toggle(id)}
-                  onComment={() => onComment({ activityUserId: item.userId, bookApiId: item.bookApiId, bookTitle: item.bookTitle })}
-                  onPress={() => router.push(`/book/${item.bookApiId}` as any)}
-                />
-              );
-            })}
-          </View>
-        )}
-        {groups.map(({ label, items }) => (
-          <View key={label}>
-            <SectionLabel label={label} />
-            {items.map((item, i) => {
-              const id = item._type === 'batch' ? item.id : `${item.userId}-${item.bookApiId}`;
-              const target: CommentTarget | null = item._type === 'batch' ? null : {
-                activityUserId: item.userId,
-                bookApiId: item.bookApiId,
-                bookTitle: item.bookTitle,
-              };
-              return (
-                <ActivityCard
-                  key={`${id}-${i}`}
-                  item={item}
-                  rxn={getRxn(id)}
-                  onLike={() => toggle(id)}
-                  onComment={() => target && onComment(target)}
-                  onPress={() => router.push(`/user/${item.userId}` as any)}
-                />
-              );
-            })}
-          </View>
-        ))}
-      </ScrollView>
-    </>
+    <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+      {groups.map(({ label, items }) => (
+        <View key={label}>
+          <SectionLabel label={label} />
+          {items.map((item, i) => {
+            const id = item._type === 'batch' ? item.id : `${item.userId}-${item.bookApiId}`;
+            const target: CommentTarget | null = item._type === 'batch' ? null : {
+              activityUserId: item.userId,
+              bookApiId: item.bookApiId,
+              bookTitle: item.bookTitle,
+            };
+            return (
+              <ActivityCard
+                key={`${id}-${i}`}
+                item={item}
+                rxn={getRxn(id)}
+                onLike={() => toggle(id)}
+                onComment={() => target && onComment(target)}
+                onPress={() => router.push(`/user/${item.userId}` as any)}
+              />
+            );
+          })}
+        </View>
+      ))}
+    </ScrollView>
   );
 });
 ActivityTab.displayName = 'ActivityTab';
@@ -619,20 +597,29 @@ export const FriendsScreen = memo(() => {
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: BG }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 14 }}>
         <Text style={{ fontSize: 22, fontWeight: '700', color: TEXT_PRI }}>Friends</Text>
-        <Pressable
-          hitSlop={8}
-          onPress={() => router.push('/notifications' as any)}
-          style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-        >
-          <View style={{ position: 'relative' }}>
-            <Ionicons name="notifications-outline" size={24} color={TEXT_PRI} />
-            {unreadCount > 0 && (
-              <View style={{ position: 'absolute', top: -4, right: -5, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: DANGER, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
-                <Text style={{ fontSize: 10, fontWeight: '700', color: '#fff' }}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-              </View>
-            )}
-          </View>
-        </Pressable>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          <Pressable
+            hitSlop={8}
+            onPress={() => router.push('/(tabs)/messages' as any)}
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <Ionicons name="chatbubble-outline" size={23} color={TEXT_PRI} />
+          </Pressable>
+          <Pressable
+            hitSlop={8}
+            onPress={() => router.push('/notifications' as any)}
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <View style={{ position: 'relative' }}>
+              <Ionicons name="notifications-outline" size={24} color={TEXT_PRI} />
+              {unreadCount > 0 && (
+                <View style={{ position: 'absolute', top: -4, right: -5, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: DANGER, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#fff' }}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                </View>
+              )}
+            </View>
+          </Pressable>
+        </View>
       </View>
 
       <View style={{ flexDirection: 'row', marginTop: 12 }}>
