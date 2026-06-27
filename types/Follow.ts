@@ -46,6 +46,7 @@ export type AppNotification = {
 };
 
 export type UserPublicStats = PublicProfile & {
+  bio: string | null;
   booksRead: number;
   followersCount: number;
   followingCount: number;
